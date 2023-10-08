@@ -22,8 +22,14 @@ add_executable(CoreVuTest
     ${APP_HEADER}
 )
 
+set(GLFW_PATH "C:/workspace/CoreVu/3rdparty/glfw")
+set(GLM_PATH "C:/workspace/CoreVu/3rdparty/glm-master")
+
 target_include_directories(CoreVuTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/corevu_test
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${GLFW_PATH}/include
+    $ENV{VULKAN_SDK}/include
+    ${GLM_PATH}
 )
 
 target_link_libraries(CoreVuTest PRIVATE

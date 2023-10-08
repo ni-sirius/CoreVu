@@ -201,7 +201,7 @@ void CoreVuDevice::createCommandPool()
 
 void CoreVuDevice::createSurface()
 {
-  window.createWindowSurface(instance, &surface_);
+  window.CreateWindowSurface(instance, &surface_);
 }
 
 bool CoreVuDevice::isDeviceSuitable(VkPhysicalDevice device)
