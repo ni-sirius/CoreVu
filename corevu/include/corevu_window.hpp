@@ -17,9 +17,7 @@ public:
   CoreVuWindow(const CoreVuWindow&) = delete;
   CoreVuWindow& operator=(const CoreVuWindow&) = delete;
 
-  void CreateWindowSurface(VkInstance& ins, VkSurfaceKHR* sur)
-  {
-  }
+  void CreateWindowSurface(VkInstance& ins, VkSurfaceKHR* sur);
 
   bool shouldClose()
   {

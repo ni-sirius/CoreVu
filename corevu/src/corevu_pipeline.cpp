@@ -5,13 +5,23 @@
 
 #include <iostream>
 
-corevu::CoreVuPipeline::CoreVuPipeline(
+using namespace corevu;
+
+CoreVuPipeline::CoreVuPipeline(
+    CoreVuDevice& device, const PipelineConfigInfo& config_info,
     const std::string& vert_filepath, const std::string& frag_filepath)
+    : m_device{device}
 {
-  createGraphicsPipeline(vert_filepath, frag_filepath);
+  createGraphicsPipeline(vert_filepath, frag_filepath, config_info);
 }
 
-std::vector<char> corevu::CoreVuPipeline::readFile(const std::string& filepath)
+PipelineConfigInfo CoreVuPipeline::DefaultPipelineConfigInfo(
+    uint32_t width, uint32_t height)
+{
+  return PipelineConfigInfo{};
+}
+
+std::vector<char> CoreVuPipeline::readFile(const std::string& filepath)
 {
   std::ifstream file{
       filepath,
@@ -32,8 +42,9 @@ std::vector<char> corevu::CoreVuPipeline::readFile(const std::string& filepath)
   return buffer;
 }
 
-void corevu::CoreVuPipeline::createGraphicsPipeline(
-    const std::string& vert_filepath, const std::string& frag_filepath)
+void CoreVuPipeline::createGraphicsPipeline(
+    const std::string& vert_filepath, const std::string& frag_filepath,
+    const PipelineConfigInfo& config_info)
 {
   auto vert_code = readFile(vert_filepath);
   auto frag_code = readFile(frag_filepath);
@@ -42,4 +53,18 @@ void corevu::CoreVuPipeline::createGraphicsPipeline(
             << (int)vert_code.size() << std::endl;
   std::cout << "file is read for " << frag_filepath << " "
             << (int)frag_code.size() << std::endl;
+}
+
+void CoreVuPipeline::createShaderModule(
+    const std::vector<char>& code, VkShaderModule* shader_module)
+{
+  VkShaderModuleCreateInfo create_info{};
+  create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+  create_info.codeSize = code.size();
+  create_info.pCode = reinterpret_cast<const uint32_t*>(code.data());
+
+  if (vkCreateShaderModule(m_device.device(), &create_info, nullptr, shader_module) != VK_SUCCESS)
+  {
+    throw std::runtime_error("FAILURE::can't create shader module");
+  }
 }

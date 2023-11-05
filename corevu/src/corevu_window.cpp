@@ -15,6 +15,15 @@ CoreVuWindow::~CoreVuWindow()
   glfwTerminate();
 }
 
+void corevu::CoreVuWindow::CreateWindowSurface(
+    VkInstance& ins, VkSurfaceKHR* sur)
+{
+  if (glfwCreateWindowSurface(ins, m_window, nullptr, sur) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to create window surface");
+  }
+}
+
 void CoreVuWindow::initWindow()
 {
   if (glfwInit())
@@ -28,6 +37,7 @@ void CoreVuWindow::initWindow()
     uint32_t extensions_count = 0;
     vkEnumerateInstanceExtensionProperties(nullptr, &extensions_count, nullptr);
 
-    std::cout << "Window is created! Extensions:" << extensions_count << std::endl;
+    std::cout << "Window is created! Extensions:" << extensions_count
+              << std::endl;
   }
 }

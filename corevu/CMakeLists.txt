@@ -17,6 +17,7 @@ add_library(CoreVu
 
 set(GLFW_PATH "C:/workspace/CoreVu/3rdparty/glfw")
 set(GLM_PATH "C:/workspace/CoreVu/3rdparty/glm-master")
+set(CMAKE_CXX_STANDARD 20)
 
 target_include_directories(CoreVu PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include

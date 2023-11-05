@@ -24,7 +24,10 @@ public:
 
 private:
   corevu::CoreVuWindow m_corevu_window{width, height, "hello world!"};
+  corevu::CoreVuDevice m_corevu_device{m_corevu_window};
   corevu::CoreVuPipeline m_corevu_pipeline{
+      m_corevu_device,
+      corevu::CoreVuPipeline::DefaultPipelineConfigInfo(width, height),
       "../corevu/shaders/simple_shader.vert.spv",
       "../corevu/shaders/simple_shader.frag.spv"};
 };
