@@ -2,10 +2,12 @@
 list(APPEND CORE_SOURCE
     src/corevu_device.cpp
     src/corevu_window.cpp
+    src/corevu_pipeline.cpp
      )
 list(APPEND CORE_HEADER
      include/corevu_device.hpp
      include/corevu_window.hpp
+     include/corevu_pipeline.hpp
      )
 
 add_library(CoreVu

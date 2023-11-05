@@ -1,4 +1,5 @@
 #include <corevu/include/corevu_window.hpp>
+#include <corevu/include/corevu_pipeline.hpp>
 
 #include <cstdlib>
 #include <iostream>
@@ -23,6 +24,9 @@ public:
 
 private:
   corevu::CoreVuWindow m_corevu_window{width, height, "hello world!"};
+  corevu::CoreVuPipeline m_corevu_pipeline{
+      "../corevu/shaders/simple_shader.vert.spv",
+      "../corevu/shaders/simple_shader.frag.spv"};
 };
 } // namespace corevutest
 
