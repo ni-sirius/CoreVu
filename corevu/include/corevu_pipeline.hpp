@@ -7,9 +7,19 @@
 
 namespace corevu
 {
-struct PipelineConfigInfo
-{
-  //tt
+struct PipelineConfigInfo {
+  VkViewport viewport;
+  VkRect2D scissor;
+  VkPipelineViewportStateCreateInfo viewportInfo;
+  VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
+  VkPipelineRasterizationStateCreateInfo rasterizationInfo;
+  VkPipelineMultisampleStateCreateInfo multisampleInfo;
+  VkPipelineColorBlendAttachmentState colorBlendAttachment;
+  VkPipelineColorBlendStateCreateInfo colorBlendInfo;
+  VkPipelineDepthStencilStateCreateInfo depthStencilInfo;
+  VkPipelineLayout pipelineLayout = nullptr;
+  VkRenderPass renderPass = nullptr;
+  uint32_t subpass = 0;
 };
 
 class CoreVuPipeline
@@ -18,7 +28,7 @@ public:
   CoreVuPipeline(
       CoreVuDevice& device, const PipelineConfigInfo& config_info,
       const std::string& vert_filepath, const std::string& frag_filepath);
-  ~CoreVuPipeline() = default;
+  ~CoreVuPipeline();
   CoreVuPipeline(const CoreVuPipeline&) = delete;
   void operator=(const CoreVuPipeline&) = delete;
 
