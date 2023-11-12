@@ -13,9 +13,19 @@ add_subdirectory(corevu)
 # add cross-platforms source files and header files
 list(APPEND APP_SOURCE
     corevu_test/main.cpp
+    corevu_test/app.cpp
      )
 list(APPEND APP_HEADER
+    corevu_test/app.hpp
      )
+
+if (MSVC)
+     # warning level 4
+     add_compile_options(/W4)
+ else()
+     # additional warnings
+     add_compile_options(-Wall -Wextra -Wpedantic)
+ endif()
 
 add_executable(CoreVuTest
     ${APP_SOURCE}

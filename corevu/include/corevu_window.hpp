@@ -24,6 +24,11 @@ public:
     return glfwWindowShouldClose(m_window);
   }
 
+  VkExtent2D GetExtent()
+  {
+    return {static_cast<uint32_t>(m_width), static_cast<uint32_t>(m_height)};
+  }
+
 private:
   void initWindow();
 

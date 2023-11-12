@@ -10,7 +10,6 @@ namespace corevu
 struct PipelineConfigInfo {
   VkViewport viewport;
   VkRect2D scissor;
-  VkPipelineViewportStateCreateInfo viewportInfo;
   VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
   VkPipelineRasterizationStateCreateInfo rasterizationInfo;
   VkPipelineMultisampleStateCreateInfo multisampleInfo;
@@ -32,6 +31,8 @@ public:
   CoreVuPipeline(const CoreVuPipeline&) = delete;
   void operator=(const CoreVuPipeline&) = delete;
 
+  void Bind(VkCommandBuffer command_buffer);
+
   static PipelineConfigInfo DefaultPipelineConfigInfo(
       uint32_t width, uint32_t height);
 
@@ -45,7 +46,7 @@ private:
       const std::vector<char>& code, VkShaderModule* shader_module);
 
   CoreVuDevice& m_device;
-  VkPipeline m_vulkan_pipeline;
+  VkPipeline m_graphics_pipeline;
   VkShaderModule m_vulkan_vert_shader_module;
   VkShaderModule m_vulkan_frag_shader_module;
 };

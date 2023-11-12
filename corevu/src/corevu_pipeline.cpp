@@ -23,7 +23,12 @@ CoreVuPipeline::~CoreVuPipeline()
       m_device.device(), m_vulkan_vert_shader_module, nullptr);
   vkDestroyShaderModule(
       m_device.device(), m_vulkan_frag_shader_module, nullptr);
-  vkDestroyPipeline(m_device.device(), m_vulkan_pipeline, nullptr);
+  vkDestroyPipeline(m_device.device(), m_graphics_pipeline, nullptr);
+}
+
+void CoreVuPipeline::Bind(VkCommandBuffer command_buffer)
+{
+  vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphics_pipeline);
 }
 
 PipelineConfigInfo CoreVuPipeline::DefaultPipelineConfigInfo(
@@ -47,13 +52,6 @@ PipelineConfigInfo CoreVuPipeline::DefaultPipelineConfigInfo(
 
   config_info.scissor.offset = {0, 0};
   config_info.scissor.extent = {width, height};
-
-  config_info.viewportInfo.sType =
-      VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-  config_info.viewportInfo.viewportCount = 1;
-  config_info.viewportInfo.pViewports = &config_info.viewport;
-  config_info.viewportInfo.scissorCount = 1;
-  config_info.viewportInfo.pScissors = &config_info.scissor;
 
   config_info.rasterizationInfo.sType =
       VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -175,7 +173,7 @@ void CoreVuPipeline::createGraphicsPipeline(
   shader_stages[1].pNext = nullptr;
   shader_stages[1].pSpecializationInfo = nullptr;
 
-  VkPipelineVertexInputStateCreateInfo vertex_input_info;
+  VkPipelineVertexInputStateCreateInfo vertex_input_info{};
   vertex_input_info.sType =
       VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
   vertex_input_info.vertexAttributeDescriptionCount = 0;
@@ -183,13 +181,20 @@ void CoreVuPipeline::createGraphicsPipeline(
   vertex_input_info.pVertexAttributeDescriptions = nullptr;
   vertex_input_info.pVertexBindingDescriptions = nullptr;
 
-  VkGraphicsPipelineCreateInfo pipeline_info;
+  VkPipelineViewportStateCreateInfo viewport_info{};
+  viewport_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+  viewport_info.viewportCount = 1;
+  viewport_info.pViewports = &config_info.viewport;
+  viewport_info.scissorCount = 1;
+  viewport_info.pScissors = &config_info.scissor;
+
+  VkGraphicsPipelineCreateInfo pipeline_info{};
   pipeline_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
   pipeline_info.stageCount = 2;
   pipeline_info.pStages = shader_stages;
   pipeline_info.pVertexInputState = &vertex_input_info;
   pipeline_info.pInputAssemblyState = &config_info.inputAssemblyInfo;
-  pipeline_info.pViewportState = &config_info.viewportInfo;
+  pipeline_info.pViewportState = &viewport_info;
   pipeline_info.pRasterizationState = &config_info.rasterizationInfo;
   pipeline_info.pMultisampleState = &config_info.multisampleInfo;
   pipeline_info.pColorBlendState = &config_info.colorBlendInfo;
@@ -205,7 +210,7 @@ void CoreVuPipeline::createGraphicsPipeline(
 
   if (vkCreateGraphicsPipelines(
           m_device.device(), VK_NULL_HANDLE, 1, &pipeline_info, nullptr,
-          &m_vulkan_pipeline) != VK_SUCCESS)
+          &m_graphics_pipeline) != VK_SUCCESS)
   {
     throw std::runtime_error("FAILURE::can't create graphics pipeline");
   }
