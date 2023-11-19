@@ -1,11 +1,12 @@
 #include "app.hpp"
 
-//std
+// std
 #include <array>
 using namespace corevutest;
 
 TestApp::TestApp()
 {
+  loadModels();
   createPipelineLayout();
   createPipeline();
   createCommandBuffers();
@@ -78,19 +79,26 @@ void TestApp::createCommandBuffers()
     render_pass_info.framebuffer = m_corevu_swapchain.getFrameBuffer(i);
 
     render_pass_info.renderArea.offset = {0, 0};
-    render_pass_info.renderArea.extent = m_corevu_swapchain.getSwapChainExtent();
+    render_pass_info.renderArea.extent =
+        m_corevu_swapchain.getSwapChainExtent();
 
-    //it's specified in corevu_swap_chain that first attachement is color and second is depth
+    // it's specified in corevu_swap_chain that first attachement is color and
+    // second is depth
     std::array<VkClearValue, 2> clear_values{};
     clear_values[0].color = {0.1f, 0.1f, 0.1f, 1.0f};
     clear_values[1].depthStencil = {1.0f, 0};
-    render_pass_info.clearValueCount = static_cast<uint32_t>(clear_values.size());
+    render_pass_info.clearValueCount =
+        static_cast<uint32_t>(clear_values.size());
     render_pass_info.pClearValues = clear_values.data();
 
-    vkCmdBeginRenderPass(m_command_buffers[i], &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdBeginRenderPass(
+        m_command_buffers[i], &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
 
     m_corevu_pipeline->Bind(m_command_buffers[i]);
-    vkCmdDraw(m_command_buffers[i], 3, 1, 0, 0);
+    // vkCmdDraw(m_command_buffers[i], 3, 1, 0, 0); // for hardcoded
+    // implementation
+    m_corevu_model->Bind(m_command_buffers[i]);
+    m_corevu_model->Draw(m_command_buffers[i]);
 
     vkCmdEndRenderPass(m_command_buffers[i]);
     if (vkEndCommandBuffer(m_command_buffers[i]))
@@ -110,9 +118,45 @@ void TestApp::drawFrame()
     throw std::runtime_error("FAILURE:: can't acuire swap chain image!");
   }
 
-  result = m_corevu_swapchain.submitCommandBuffers(&m_command_buffers[image_index], &image_index);
+  result = m_corevu_swapchain.submitCommandBuffers(
+      &m_command_buffers[image_index], &image_index);
   if (result != VK_SUCCESS)
   {
     throw std::runtime_error("FAILURE::can't present swap chain image!");
   }
+}
+
+static void sierpinski(
+    std::vector<corevu::CoreVuModel::Vertex>& vertices, int depth,
+    glm::vec2 left, glm::vec2 right, glm::vec2 top)
+{
+  if (depth <= 0)
+  {
+    vertices.push_back({top});
+    vertices.push_back({right});
+    vertices.push_back({left});
+  }
+  else
+  {
+    auto leftTop = 0.5f * (left + top);
+    auto rightTop = 0.5f * (right + top);
+    auto leftRight = 0.5f * (left + right);
+    sierpinski(vertices, depth - 1, left, leftRight, leftTop);
+    sierpinski(vertices, depth - 1, leftRight, right, rightTop);
+    sierpinski(vertices, depth - 1, leftTop, rightTop, top);
+  }
+}
+
+void TestApp::loadModels()
+{
+  // base solution
+  // std::vector<corevu::CoreVuModel::Vertex> vertices{
+  //     {{0.0f, -0.5f}}, {{0.5f, 0.5f}}, {{-0.5f, 0.5f}}};
+
+  // sierpinski solution
+  std::vector<corevu::CoreVuModel::Vertex> vertices{};
+  sierpinski(vertices, 5, {-0.5f, 0.5f}, {0.5f, 0.5f}, {0.0f, -0.5f});
+
+  m_corevu_model =
+      std::make_unique<corevu::CoreVuModel>(m_corevu_device, vertices);
 }

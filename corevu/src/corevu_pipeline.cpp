@@ -1,4 +1,5 @@
-#include <corevu_pipeline.hpp>
+#include "corevu_pipeline.hpp"
+#include "corevu_model.hpp"
 
 #include <fstream>
 #include <stdexcept>
@@ -152,6 +153,10 @@ void CoreVuPipeline::createGraphicsPipeline(
 
   auto vert_code = readFile(vert_filepath);
   auto frag_code = readFile(frag_filepath);
+  std::cout << "file is read for " << vert_filepath << " "
+            << (int)vert_code.size() << std::endl;
+  std::cout << "file is read for " << frag_filepath << " "
+            << (int)frag_code.size() << std::endl;
 
   createShaderModule(vert_code, &m_vulkan_vert_shader_module);
   createShaderModule(frag_code, &m_vulkan_frag_shader_module);
@@ -173,13 +178,15 @@ void CoreVuPipeline::createGraphicsPipeline(
   shader_stages[1].pNext = nullptr;
   shader_stages[1].pSpecializationInfo = nullptr;
 
+  auto binding_descriptions = CoreVuModel::Vertex::GetBindingDescriptions();
+  auto attribute_descriptions = CoreVuModel::Vertex::GetAttributeDescriptions();
   VkPipelineVertexInputStateCreateInfo vertex_input_info{};
   vertex_input_info.sType =
       VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-  vertex_input_info.vertexAttributeDescriptionCount = 0;
-  vertex_input_info.vertexBindingDescriptionCount = 0;
-  vertex_input_info.pVertexAttributeDescriptions = nullptr;
-  vertex_input_info.pVertexBindingDescriptions = nullptr;
+  vertex_input_info.vertexAttributeDescriptionCount = static_cast<uint32_t>(attribute_descriptions.size());
+  vertex_input_info.vertexBindingDescriptionCount = static_cast<uint32_t>(binding_descriptions.size());
+  vertex_input_info.pVertexAttributeDescriptions = attribute_descriptions.data();
+  vertex_input_info.pVertexBindingDescriptions = binding_descriptions.data();
 
   VkPipelineViewportStateCreateInfo viewport_info{};
   viewport_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -214,11 +221,6 @@ void CoreVuPipeline::createGraphicsPipeline(
   {
     throw std::runtime_error("FAILURE::can't create graphics pipeline");
   }
-
-  std::cout << "file is read for " << vert_filepath << " "
-            << (int)vert_code.size() << std::endl;
-  std::cout << "file is read for " << frag_filepath << " "
-            << (int)frag_code.size() << std::endl;
 }
 
 void CoreVuPipeline::createShaderModule(

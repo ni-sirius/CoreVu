@@ -4,12 +4,14 @@ list(APPEND CORE_SOURCE
     src/corevu_window.cpp
     src/corevu_pipeline.cpp
     src/corevu_swap_chain.cpp
+    src/corevu_model.cpp
      )
 list(APPEND CORE_HEADER
      include/corevu_device.hpp
      include/corevu_window.hpp
      include/corevu_pipeline.hpp
      include/corevu_swap_chain.hpp
+     include/corevu_model.hpp
      )
 
 if (MSVC)

@@ -1,6 +1,7 @@
 #include <corevu/include/corevu_window.hpp>
 #include <corevu/include/corevu_pipeline.hpp>
 #include <corevu/include/corevu_swap_chain.hpp>
+#include <corevu/include/corevu_model.hpp>
 
 // std
 #include <cstdlib>
@@ -39,11 +40,14 @@ private:
   void createCommandBuffers();
   void drawFrame();
 
+  void loadModels();
+
 private:
   corevu::CoreVuWindow m_corevu_window{width, height, "hello world!"};
   corevu::CoreVuDevice m_corevu_device{m_corevu_window};
   corevu::CoreVuSwapChain m_corevu_swapchain{
       m_corevu_device, m_corevu_window.GetExtent()};
+
   std::unique_ptr<corevu::CoreVuPipeline> m_corevu_pipeline;
   VkPipelineLayout m_pipeline_layout;
   std::vector<VkCommandBuffer> m_command_buffers;
@@ -52,5 +56,7 @@ private:
   //     corevu::CoreVuPipeline::DefaultPipelineConfigInfo(width, height),
   //     "../corevu/shaders/simple_shader.vert.spv",
   //     "../corevu/shaders/simple_shader.frag.spv"};
+
+  std::unique_ptr<corevu::CoreVuModel> m_corevu_model;
 };
 } // namespace corevutest
