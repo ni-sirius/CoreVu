@@ -360,10 +360,30 @@ void CoreVuSwapChain::createSyncObjects() {
 }
 
 VkSurfaceFormatKHR CoreVuSwapChain::chooseSwapSurfaceFormat(
-    const std::vector<VkSurfaceFormatKHR> &availableFormats) {
-  for (const auto &availableFormat : availableFormats) {
-    if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM &&
-        availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+    const std::vector<VkSurfaceFormatKHR>& availableFormats)
+{
+  for (const auto& availableFormat : availableFormats)
+  {
+    /* VK_FORMAT_B8G8R8A8_UNORM && VK_FORMAT_B8G8R8A8_SRGB
+      So right now if we render a scene, all our rendering occurs in a linear
+color space. Then when our monitor takes the image and displays it applies
+gamma, darkening all our midtones. By changing the format from UNORM to SRGB
+tells Vulkan that when it writes output to the framebuffer’s color attachment,
+to automatically apply this gamma correction.
+
+So essentially vulkan renders linearly -> writes to our framebuffer and lightens
+our values automatically -> monitor displays values darkening them -> correct
+result
+
+ Honestly right now this doesn’t matter much, and many older graphics engines
+completely ignored gamma correction and still look great. But once we start
+dealing with more realistic rendering techniques, we need to account for gamma
+if things are to appear physically accurate.
+
+     */
+    if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
+        availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+    {
       return availableFormat;
     }
   }
@@ -373,12 +393,12 @@ VkSurfaceFormatKHR CoreVuSwapChain::chooseSwapSurfaceFormat(
 
 VkPresentModeKHR CoreVuSwapChain::chooseSwapPresentMode(
     const std::vector<VkPresentModeKHR> &availablePresentModes) {
-  // for (const auto &availablePresentMode : availablePresentModes) {
-  //   if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
-  //     std::cout << "Present mode: Mailbox" << std::endl;
-  //     return availablePresentMode;
-  //   }
-  // }
+  for (const auto &availablePresentMode : availablePresentModes) {
+    if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+      std::cout << "Present mode: Mailbox" << std::endl;
+      return availablePresentMode;
+    }
+  }
 
   // for (const auto &availablePresentMode : availablePresentModes) {
   //   if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {

@@ -150,12 +150,14 @@ static void sierpinski(
 void TestApp::loadModels()
 {
   // base solution
-  // std::vector<corevu::CoreVuModel::Vertex> vertices{
-  //     {{0.0f, -0.5f}}, {{0.5f, 0.5f}}, {{-0.5f, 0.5f}}};
+  std::vector<corevu::CoreVuModel::Vertex> vertices{
+      {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+      {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+      {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
 
   // sierpinski solution
-  std::vector<corevu::CoreVuModel::Vertex> vertices{};
-  sierpinski(vertices, 5, {-0.5f, 0.5f}, {0.5f, 0.5f}, {0.0f, -0.5f});
+  // std::vector<corevu::CoreVuModel::Vertex> vertices{};
+  // sierpinski(vertices, 5, {-0.5f, 0.5f}, {0.5f, 0.5f}, {0.0f, -0.5f});
 
   m_corevu_model =
       std::make_unique<corevu::CoreVuModel>(m_corevu_device, vertices);
