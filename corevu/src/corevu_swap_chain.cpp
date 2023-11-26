@@ -11,14 +11,21 @@
 
 namespace corevu {
 
-CoreVuSwapChain::CoreVuSwapChain(CoreVuDevice &deviceRef, VkExtent2D extent)
-    : device{deviceRef}, windowExtent{extent} {
-  createSwapChain();
-  createImageViews();
-  createRenderPass();
-  createDepthResources();
-  createFramebuffers();
-  createSyncObjects();
+CoreVuSwapChain::CoreVuSwapChain(CoreVuDevice& deviceRef, VkExtent2D extent)
+  : device{deviceRef}, windowExtent{extent}
+{
+  init();
+}
+
+CoreVuSwapChain::CoreVuSwapChain(
+    CoreVuDevice& deviceRef, VkExtent2D windowExtent,
+    std::shared_ptr<CoreVuSwapChain> prev_swapchain)
+  : device{deviceRef}, windowExtent{windowExtent},
+    m_old_swapchain{prev_swapchain}
+{
+  init();
+
+  m_old_swapchain = nullptr; // clean since it's not use anymore after init();
 }
 
 CoreVuSwapChain::~CoreVuSwapChain() {
@@ -119,7 +126,18 @@ VkResult CoreVuSwapChain::submitCommandBuffers(
   return result;
 }
 
-void CoreVuSwapChain::createSwapChain() {
+void CoreVuSwapChain::init()
+{
+  createSwapChain();
+  createImageViews();
+  createRenderPass();
+  createDepthResources();
+  createFramebuffers();
+  createSyncObjects();
+}
+
+void CoreVuSwapChain::createSwapChain()
+{
   SwapChainSupportDetails swapChainSupport = device.getSwapChainSupport();
 
   VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
@@ -162,9 +180,13 @@ void CoreVuSwapChain::createSwapChain() {
   createInfo.presentMode = presentMode;
   createInfo.clipped = VK_TRUE;
 
-  createInfo.oldSwapchain = VK_NULL_HANDLE;
+  createInfo.oldSwapchain = (m_old_swapchain == nullptr)
+                                ? VK_NULL_HANDLE
+                                : m_old_swapchain->swapChain;
 
-  if (vkCreateSwapchainKHR(device.device(), &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
+  if (vkCreateSwapchainKHR(device.device(), &createInfo, nullptr, &swapChain) !=
+      VK_SUCCESS)
+  {
     throw std::runtime_error("failed to create swap chain!");
   }
 

@@ -27,7 +27,9 @@ public:
   {
     while (!m_corevu_window.shouldClose())
     {
-      glfwPollEvents();
+      glfwPollEvents(); // on some pltforms processing of events can block
+                        // polling. The window refresh callback can be used to
+                        // fix that.
       drawFrame();
     }
 
@@ -38,17 +40,19 @@ private:
   void createPipelineLayout();
   void createPipeline();
   void createCommandBuffers();
+  void freeCommandBuffers();
   void drawFrame();
 
   void loadModels();
 
+  void recreateSwapchain();
+  void recordCommandBuffer(int imageIndex);
+
 private:
   corevu::CoreVuWindow m_corevu_window{width, height, "hello world!"};
   corevu::CoreVuDevice m_corevu_device{m_corevu_window};
-  corevu::CoreVuSwapChain m_corevu_swapchain{
-      m_corevu_device, m_corevu_window.GetExtent()};
-
-  std::unique_ptr<corevu::CoreVuPipeline> m_corevu_pipeline;
+  std::unique_ptr<corevu::CoreVuSwapChain> m_corevu_swapchain{nullptr};
+  std::unique_ptr<corevu::CoreVuPipeline> m_corevu_pipeline{nullptr};
   VkPipelineLayout m_pipeline_layout;
   std::vector<VkCommandBuffer> m_command_buffers;
   // corevu::CoreVuPipeline m_corevu_pipeline{

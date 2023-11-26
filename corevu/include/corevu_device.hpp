@@ -42,7 +42,7 @@ public:
 
   // Not copyable or movable
   CoreVuDevice(const CoreVuDevice&) = delete;
-  void operator=(const CoreVuDevice&) = delete;
+  CoreVuDevice& operator=(const CoreVuDevice&) = delete;
   CoreVuDevice(CoreVuDevice&&) = delete;
   CoreVuDevice& operator=(CoreVuDevice&&) = delete;
 
