@@ -2,6 +2,7 @@
 #include <corevu/include/corevu_pipeline.hpp>
 #include <corevu/include/corevu_swap_chain.hpp>
 #include <corevu/include/corevu_model.hpp>
+#include <corevu/include/corevu_gameobject.hpp>
 
 // std
 #include <cstdlib>
@@ -43,7 +44,8 @@ private:
   void freeCommandBuffers();
   void drawFrame();
 
-  void loadModels();
+  void loadGameObjects();
+  void renderGameObjects(VkCommandBuffer command_buffer);
 
   void recreateSwapchain();
   void recordCommandBuffer(int imageIndex);
@@ -61,6 +63,7 @@ private:
   //     "../corevu/shaders/simple_shader.vert.spv",
   //     "../corevu/shaders/simple_shader.frag.spv"};
 
-  std::unique_ptr<corevu::CoreVuModel> m_corevu_model;
+  // std::unique_ptr<corevu::CoreVuModel> m_corevu_model;
+  std::vector<corevu::CoreVuGameObject> m_game_objects;
 };
 } // namespace corevutest

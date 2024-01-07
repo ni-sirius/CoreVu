@@ -13,6 +13,7 @@ struct SimplePushConstantData // NOTE : ALL push data constants together are
                               // limited to 128 bytes space! But it's quite
                               // handy for storing transformation matrices.
 {
+  glm::mat2 transform{1.f};
   glm::vec2 offset; // 4 bytes * 2 = 8 bytes
   alignas(16) glm::vec3
       color; // w/o alignas will start with 9th byte // vulkan require
@@ -22,7 +23,7 @@ struct SimplePushConstantData // NOTE : ALL push data constants together are
 
 TestApp::TestApp()
 {
-  loadModels();
+  loadGameObjects();
   createPipelineLayout();
   recreateSwapchain();
   createCommandBuffers();
@@ -161,7 +162,7 @@ void TestApp::drawFrame()
 //   }
 // }
 
-void TestApp::loadModels()
+void TestApp::loadGameObjects()
 {
   // base solution
   std::vector<corevu::CoreVuModel::Vertex> vertices{
@@ -173,8 +174,36 @@ void TestApp::loadModels()
   // std::vector<corevu::CoreVuModel::Vertex> vertices{};
   // sierpinski(vertices, 5, {-0.5f, 0.5f}, {0.5f, 0.5f}, {0.0f, -0.5f});
 
-  m_corevu_model =
-      std::make_unique<corevu::CoreVuModel>(m_corevu_device, vertices);
+  auto corevu_model =
+      std::make_shared<corevu::CoreVuModel>(m_corevu_device, vertices);
+
+  auto triangle = corevu::CoreVuGameObject::Create();
+  triangle.model = corevu_model;
+  triangle.color = {.1f, .8f, .1f};
+  triangle.transform.translation.x = .2f;
+
+  m_game_objects.emplace_back(std::move(triangle));
+}
+
+void TestApp::renderGameObjects(VkCommandBuffer command_buffer)
+{
+  m_corevu_pipeline->Bind(command_buffer);
+
+  for (auto& obj : m_game_objects)
+  {
+    SimplePushConstantData push{};
+    push.offset = obj.transform.translation;
+    push.color = obj.color;
+    push.transform = obj.transform.ToMat2();
+
+    vkCmdPushConstants(
+        command_buffer, m_pipeline_layout,
+        VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT, 0,
+        sizeof(SimplePushConstantData), &push);
+
+    obj.model->Bind(command_buffer);
+    obj.model->Draw(command_buffer);
+  }
 }
 
 void TestApp::recreateSwapchain()
@@ -217,9 +246,6 @@ void TestApp::recreateSwapchain()
 
 void TestApp::recordCommandBuffer(int imageIndex)
 {
-  static int frame = 0;
-  frame = (frame + 1) % 1000;
-
   VkCommandBufferBeginInfo begin_info{};
   begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
@@ -240,7 +266,7 @@ void TestApp::recordCommandBuffer(int imageIndex)
   // it's specified in corevu_swap_chain that first attachement is color and
   // second is depth
   std::array<VkClearValue, 2> clear_values{};
-  clear_values[0].color = {0.01f, 0.1f, 0.1f, 1.0f};
+  clear_values[0].color = {0.01f, 0.01f, 0.01f, 1.0f};
   clear_values[1].depthStencil = {1.0f, 0};
   render_pass_info.clearValueCount = static_cast<uint32_t>(clear_values.size());
   render_pass_info.pClearValues = clear_values.data();
@@ -262,25 +288,7 @@ void TestApp::recordCommandBuffer(int imageIndex)
   vkCmdSetViewport(m_command_buffers[imageIndex], 0, 1, &viewport);
   vkCmdSetScissor(m_command_buffers[imageIndex], 0, 1, &scissor);
 
-  m_corevu_pipeline->Bind(m_command_buffers[imageIndex]);
-  // vkCmdDraw(m_command_buffers[imageIndex], 3, 1, 0, 0); // for hardcoded
-  // implementation
-  m_corevu_model->Bind(m_command_buffers[imageIndex]);
-
-  // draw 4 copies
-  for (int j = 0; j < 4; j++)
-  {
-    SimplePushConstantData push{};
-    push.offset = {-0.5f + frame * 0.002f, -0.4 + j * 0.25f};
-    push.color = {0.f, 0.f, 0.2f + 0.2f * j};
-
-    vkCmdPushConstants(
-        m_command_buffers[imageIndex], m_pipeline_layout,
-        VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT, 0,
-        sizeof(SimplePushConstantData), &push);
-
-    m_corevu_model->Draw(m_command_buffers[imageIndex]);
-  }
+  renderGameObjects(m_command_buffers[imageIndex]);
 
   vkCmdEndRenderPass(m_command_buffers[imageIndex]);
   if (vkEndCommandBuffer(m_command_buffers[imageIndex]))
