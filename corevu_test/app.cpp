@@ -171,31 +171,56 @@ void TestApp::loadGameObjects()
       {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
       {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
 
-  // sierpinski solution
-  // std::vector<corevu::CoreVuModel::Vertex> vertices{};
-  // sierpinski(vertices, 5, {-0.5f, 0.5f}, {0.5f, 0.5f}, {0.0f, -0.5f});
-
   auto corevu_model =
       std::make_shared<corevu::CoreVuModel>(m_corevu_device, vertices);
 
-  auto triangle = corevu::CoreVuGameObject::Create();
-  triangle.model = corevu_model;
-  triangle.color = {.1f, .8f, .1f};
-  triangle.transform.translation.x = .2f;
-  triangle.transform.scale = {2.f, .5f};
-  triangle.transform.rotation = .25f * glm::two_pi<float>();
+  std::vector<glm::vec3> colors{
+      {1.f, .7f, .73f},
+      {1.f, .87f, .73f},
+      {1.f, 1.f, .73f},
+      {.73f, 1.f, .8f},
+      {.73, .88f, 1.f}  //
+  };
+  for (auto& color : colors) {
+    color = glm::pow(color, glm::vec3{2.2f});
+  }
+  for (int i = 0; i < 40; i++) {
+    auto triangle = corevu::CoreVuGameObject::Create();
+    triangle.model = corevu_model;
+    triangle.transform.scale = glm::vec2(.5f) + i * 0.025f;
+    triangle.transform.rotation = i * glm::pi<float>() * .025f;
+    triangle.color = colors[i % colors.size()];
+    m_game_objects.push_back(std::move(triangle));
+  }
 
-  m_game_objects.emplace_back(std::move(triangle));
+  // auto triangle = corevu::CoreVuGameObject::Create();
+  // triangle.model = corevu_model;
+  // triangle.color = {.1f, .8f, .1f};
+  // triangle.transform.translation.x = .2f;
+  // triangle.transform.scale = {2.f, .5f};
+  // triangle.transform.rotation = .25f * glm::two_pi<float>();
+
+  // m_game_objects.emplace_back(std::move(triangle));
 }
 
 void TestApp::renderGameObjects(VkCommandBuffer command_buffer)
 {
+  // update
+  int i = 0;
+  for (auto& obj : m_game_objects)
+  {
+    i += 1;
+    obj.transform.rotation = glm::mod<float>(
+        obj.transform.rotation + 0.00001f * i, 2.f * glm::pi<float>());
+  }
+
+  //render
   m_corevu_pipeline->Bind(command_buffer);
 
   for (auto& obj : m_game_objects)
   {
-    obj.transform.rotation =
-        glm::mod(obj.transform.rotation + 0.01f, glm::two_pi<float>());
+    //obj.transform.rotation =
+    //    glm::mod(obj.transform.rotation + 0.01f, glm::two_pi<float>());
 
     SimplePushConstantData push{};
     push.offset = obj.transform.translation;
