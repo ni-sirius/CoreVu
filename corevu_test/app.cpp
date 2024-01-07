@@ -1,8 +1,22 @@
 #include "app.hpp"
 
+// temp libs
+#define GLM_FORCE_RADIANS           // to be sure that no change depending on system
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE // instead of -1 to 1 ?
+#include <glm/glm.hpp>
+
 // std
 #include <array>
 using namespace corevutest;
+
+struct SimplePushConstantData
+{
+  glm::vec2 offset; // 4 bytes * 2 = 8 bytes
+  alignas(16) glm::vec3
+      color; // w/o alignas will start with 9th byte // vulkan require
+             // alignment of 4*size(val) for 3&4 component vectors. -> need to
+             // add offset 16 bytes instead of (4bytes*2)of vec2 member offset.
+};
 
 TestApp::TestApp()
 {
@@ -19,12 +33,21 @@ TestApp::~TestApp()
 
 void TestApp::createPipelineLayout()
 {
+  VkPushConstantRange push_constant_range{};
+  push_constant_range.stageFlags =
+      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+  push_constant_range.offset =
+      0; // if separate ranges for different stages are used.
+  push_constant_range.size = sizeof(SimplePushConstantData);
+
   VkPipelineLayoutCreateInfo pipeline_layout_info{};
   pipeline_layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
   pipeline_layout_info.setLayoutCount = 0;
   pipeline_layout_info.pSetLayouts = nullptr;
-  pipeline_layout_info.pushConstantRangeCount = 0;
-  pipeline_layout_info.pPushConstantRanges = nullptr;
+  pipeline_layout_info.pushConstantRangeCount =
+      1; // 1 for one constant range for all stages
+  pipeline_layout_info.pPushConstantRanges =
+      &push_constant_range; // TODO what if 2 ranges?
   if (vkCreatePipelineLayout(
           m_corevu_device.device(), &pipeline_layout_info, nullptr,
           &m_pipeline_layout) != VK_SUCCESS)
@@ -35,8 +58,12 @@ void TestApp::createPipelineLayout()
 
 void TestApp::createPipeline()
 {
-  assert(m_corevu_swapchain != nullptr && "Cannot create pipeline before swap chain");
-  assert(m_pipeline_layout != nullptr && "Cannot create pipeline before pipeline layout");
+  assert(
+      m_corevu_swapchain != nullptr &&
+      "Cannot create pipeline before swap chain");
+  assert(
+      m_pipeline_layout != nullptr &&
+      "Cannot create pipeline before pipeline layout");
 
   corevu::PipelineConfigInfo pipeline_config{};
   corevu::CoreVuPipeline::DefaultPipelineConfigInfo(pipeline_config);
@@ -220,8 +247,10 @@ void TestApp::recordCommandBuffer(int imageIndex)
   VkViewport viewport{};
   viewport.x = 0.0f;
   viewport.y = 0.0f;
-  viewport.width = static_cast<float>(m_corevu_swapchain->getSwapChainExtent().width);
-  viewport.height = static_cast<float>(m_corevu_swapchain->getSwapChainExtent().height);
+  viewport.width =
+      static_cast<float>(m_corevu_swapchain->getSwapChainExtent().width);
+  viewport.height =
+      static_cast<float>(m_corevu_swapchain->getSwapChainExtent().height);
   viewport.minDepth = 0.0f;
   viewport.maxDepth = 1.0f;
   VkRect2D scissor{{0, 0}, m_corevu_swapchain->getSwapChainExtent()};
@@ -232,7 +261,21 @@ void TestApp::recordCommandBuffer(int imageIndex)
   // vkCmdDraw(m_command_buffers[imageIndex], 3, 1, 0, 0); // for hardcoded
   // implementation
   m_corevu_model->Bind(m_command_buffers[imageIndex]);
-  m_corevu_model->Draw(m_command_buffers[imageIndex]);
+
+  // draw 4 copies
+  for (int j = 0; j < 4; j++)
+  {
+    SimplePushConstantData push{};
+    push.offset = {0.f, -0.4 + j * 0.25f};
+    push.color = {0.f, 0.f, 0.2f + 0.2f * j};
+
+    vkCmdPushConstants(
+        m_command_buffers[imageIndex], m_pipeline_layout,
+        VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT, 0,
+        sizeof(SimplePushConstantData), &push);
+
+    m_corevu_model->Draw(m_command_buffers[imageIndex]);
+  }
 
   vkCmdEndRenderPass(m_command_buffers[imageIndex]);
   if (vkEndCommandBuffer(m_command_buffers[imageIndex]))
