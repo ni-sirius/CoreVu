@@ -9,7 +9,9 @@
 #include <array>
 using namespace corevutest;
 
-struct SimplePushConstantData
+struct SimplePushConstantData // NOTE : ALL push data constants together are
+                              // limited to 128 bytes space! But it's quite
+                              // handy for storing transformation matrices.
 {
   glm::vec2 offset; // 4 bytes * 2 = 8 bytes
   alignas(16) glm::vec3
@@ -215,6 +217,9 @@ void TestApp::recreateSwapchain()
 
 void TestApp::recordCommandBuffer(int imageIndex)
 {
+  static int frame = 0;
+  frame = (frame + 1) % 1000;
+
   VkCommandBufferBeginInfo begin_info{};
   begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
@@ -235,7 +240,7 @@ void TestApp::recordCommandBuffer(int imageIndex)
   // it's specified in corevu_swap_chain that first attachement is color and
   // second is depth
   std::array<VkClearValue, 2> clear_values{};
-  clear_values[0].color = {0.1f, 0.1f, 0.1f, 1.0f};
+  clear_values[0].color = {0.01f, 0.1f, 0.1f, 1.0f};
   clear_values[1].depthStencil = {1.0f, 0};
   render_pass_info.clearValueCount = static_cast<uint32_t>(clear_values.size());
   render_pass_info.pClearValues = clear_values.data();
@@ -266,7 +271,7 @@ void TestApp::recordCommandBuffer(int imageIndex)
   for (int j = 0; j < 4; j++)
   {
     SimplePushConstantData push{};
-    push.offset = {0.f, -0.4 + j * 0.25f};
+    push.offset = {-0.5f + frame * 0.002f, -0.4 + j * 0.25f};
     push.color = {0.f, 0.f, 0.2f + 0.2f * j};
 
     vkCmdPushConstants(
