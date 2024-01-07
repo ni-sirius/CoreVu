@@ -4,6 +4,7 @@
 #define GLM_FORCE_RADIANS           // to be sure that no change depending on system
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE // instead of -1 to 1 ?
 #include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
 
 // std
 #include <array>
@@ -181,6 +182,8 @@ void TestApp::loadGameObjects()
   triangle.model = corevu_model;
   triangle.color = {.1f, .8f, .1f};
   triangle.transform.translation.x = .2f;
+  triangle.transform.scale = {2.f, .5f};
+  triangle.transform.rotation = .25f * glm::two_pi<float>();
 
   m_game_objects.emplace_back(std::move(triangle));
 }
@@ -191,6 +194,9 @@ void TestApp::renderGameObjects(VkCommandBuffer command_buffer)
 
   for (auto& obj : m_game_objects)
   {
+    obj.transform.rotation =
+        glm::mod(obj.transform.rotation + 0.01f, glm::two_pi<float>());
+
     SimplePushConstantData push{};
     push.offset = obj.transform.translation;
     push.color = obj.color;
