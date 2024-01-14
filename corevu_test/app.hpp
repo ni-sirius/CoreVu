@@ -1,7 +1,6 @@
 #include <corevu/include/corevu_device.hpp>
 #include <corevu/include/corevu_gameobject.hpp>
 #include <corevu/include/corevu_window.hpp>
-#include <corevu/include/corevu_pipeline.hpp>
 #include "renderer.hpp"
 
 // std
@@ -27,20 +26,15 @@ public:
   void run();
 
 private:
-  void createPipelineLayout();
-  void createPipeline();
-
   void loadGameObjects();
-  void renderGameObjects(VkCommandBuffer command_buffer);
 
 private:
   corevu::CoreVuWindow m_corevu_window{width, height, "hello world!"};
   corevu::CoreVuDevice m_corevu_device{m_corevu_window};
   SampleRenderer m_renderer{m_corevu_window, m_corevu_device};
 
-  std::unique_ptr<corevu::CoreVuPipeline> m_corevu_pipeline{nullptr};
-  VkPipelineLayout m_pipeline_layout;
-
-  std::vector<corevu::CoreVuGameObject> m_game_objects; // or // std::unique_ptr<corevu::CoreVuModel> m_corevu_model;
+  std::vector<corevu::CoreVuGameObject>
+      m_game_objects; // or // std::unique_ptr<corevu::CoreVuModel>
+                      // m_corevu_model;
 };
 } // namespace corevutest
