@@ -14,9 +14,11 @@ add_subdirectory(corevu)
 list(APPEND APP_SOURCE
     corevu_test/main.cpp
     corevu_test/app.cpp
+    corevu_test/renderer.cpp
      )
 list(APPEND APP_HEADER
     corevu_test/app.hpp
+    corevu_test/renderer.hpp
      )
 
 if (MSVC)

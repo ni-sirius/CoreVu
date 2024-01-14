@@ -2,7 +2,8 @@
 
 int main(int, char**)
 {
-  corevutest::TestApp app{};
+  std::cout << "Hello user, ..  from CoreVu!\n";
+  corevutest::SampleApp app{};
 
   try
   {
@@ -14,6 +15,7 @@ int main(int, char**)
     return EXIT_FAILURE;
   }
 
-  std::cout << "Hello, from CoreVu!\n";
+  
+  std::cout << "See you later! .. from CoreVu!\n";
   return EXIT_SUCCESS;
 }
