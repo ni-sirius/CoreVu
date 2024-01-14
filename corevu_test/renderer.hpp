@@ -33,7 +33,16 @@ public:
     assert(
         m_is_frame_started &&
         "FAILURE::cannot get command buffer when frame not in progress.");
-    return m_command_buffers[m_current_image_index];
+    return m_command_buffers[m_current_frame_index];
+  }
+
+  int GetFrameIndex() const
+  {
+    assert(
+        m_is_frame_started &&
+        "FAILURE::cannot get frame index when frame not in progress.");
+
+    return m_current_frame_index;
   }
 
   VkRenderPass GetSwapchainRenderpass() const
@@ -53,6 +62,7 @@ private:
   std::vector<VkCommandBuffer> m_command_buffers;
 
   uint32_t m_current_image_index = 0;
+  int m_current_frame_index = 0;
   bool m_is_frame_started = false;
 };
 } // namespace corevutest

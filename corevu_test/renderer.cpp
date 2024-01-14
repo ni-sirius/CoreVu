@@ -24,7 +24,8 @@ VkCommandBuffer SampleRenderer::BeginFrame()
       !m_is_frame_started &&
       "FAILURE::cannot begin frame while it's already in progress.");
 
-  auto result = m_corevu_swapchain->acquireNextImage(&m_current_image_index);
+  auto result = m_corevu_swapchain->acquireNextImage(
+      &m_current_image_index); // image(renderbuffer id) getting from vulkan
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR)
   {
@@ -75,6 +76,8 @@ void SampleRenderer::EndFrame()
   }
 
   m_is_frame_started = false;
+  m_current_frame_index = (m_current_frame_index + 1) %
+                          corevu::CoreVuSwapChain::MAX_FRAMES_IN_FLIGHT;
 }
 
 void SampleRenderer::BeginSwapChainRenderPass(VkCommandBuffer command_buffer)
@@ -137,8 +140,9 @@ void SampleRenderer::EndSwapChainRenderPass(VkCommandBuffer command_buffer)
 void SampleRenderer::createCommandBuffers()
 {
   m_command_buffers.resize(
-      m_corevu_swapchain
-          ->imageCount()); // one to one command bufer - swap chain
+      corevu::CoreVuSwapChain::MAX_FRAMES_IN_FLIGHT); // (was) one to one
+                                                      // command bufer - swap
+                                                      // chain->imageCount
 
   VkCommandBufferAllocateInfo alloc_info{};
   alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -197,19 +201,9 @@ void SampleRenderer::recreateSwapchain()
     if (!old_swap_chain->compareSwapFormats(*m_corevu_swapchain.get()))
     {
       throw std::runtime_error(
-          "FAILURE::two incompatible swapchains are created!"); // TODO callback for the main app.
-    }
-
-    if (m_corevu_swapchain &&
-        m_corevu_swapchain->imageCount() != m_command_buffers.size())
-    {
-      freeCommandBuffers();
-      createCommandBuffers();
+          "FAILURE::two incompatible swapchains are created!"); // TODO callback
+                                                                // for the main
+                                                                // app.
     }
   }
-
-  // #error - no pipeline recreated - to be changed/fixed later
-  //  createPipeline(); // if render passes are compatible (same layout of
-  //  data),
-  //   the pipline can stay the same
 }
