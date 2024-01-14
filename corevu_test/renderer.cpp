@@ -80,16 +80,18 @@ void SampleRenderer::EndFrame()
 void SampleRenderer::BeginSwapChainRenderPass(VkCommandBuffer command_buffer)
 {
   assert(
-      m_is_frame_started &&
-      "FAILURE::cannot call BeginSwapChainRenderPass if frame is not in progress.");
-    assert(
+      m_is_frame_started && "FAILURE::cannot call BeginSwapChainRenderPass if "
+                            "frame is not in progress.");
+  assert(
       command_buffer == GetCurrentCommandbuffer() &&
-      "FAILURE::cannot begin render pass on command buffer from different frame.");
+      "FAILURE::cannot begin render pass on command buffer from different "
+      "frame.");
 
-    VkRenderPassBeginInfo render_pass_info{};
+  VkRenderPassBeginInfo render_pass_info{};
   render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
   render_pass_info.renderPass = m_corevu_swapchain->getRenderPass();
-  render_pass_info.framebuffer = m_corevu_swapchain->getFrameBuffer(m_current_image_index);
+  render_pass_info.framebuffer =
+      m_corevu_swapchain->getFrameBuffer(m_current_image_index);
 
   render_pass_info.renderArea.offset = {0, 0};
   render_pass_info.renderArea.extent = m_corevu_swapchain->getSwapChainExtent();
@@ -103,8 +105,7 @@ void SampleRenderer::BeginSwapChainRenderPass(VkCommandBuffer command_buffer)
   render_pass_info.pClearValues = clear_values.data();
 
   vkCmdBeginRenderPass(
-      command_buffer, &render_pass_info,
-      VK_SUBPASS_CONTENTS_INLINE);
+      command_buffer, &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
 
   VkViewport viewport{};
   viewport.x = 0.0f;
@@ -122,14 +123,15 @@ void SampleRenderer::BeginSwapChainRenderPass(VkCommandBuffer command_buffer)
 
 void SampleRenderer::EndSwapChainRenderPass(VkCommandBuffer command_buffer)
 {
-    assert(
-      m_is_frame_started &&
-      "FAILURE::cannot call EndSwapChainRenderPass if frame is not in progress.");
-    assert(
+  assert(
+      m_is_frame_started && "FAILURE::cannot call EndSwapChainRenderPass if "
+                            "frame is not in progress.");
+  assert(
       command_buffer == GetCurrentCommandbuffer() &&
-      "FAILURE::cannot end render pass on command buffer from different frame.");
+      "FAILURE::cannot end render pass on command buffer from different "
+      "frame.");
 
-    vkCmdEndRenderPass(command_buffer);
+  vkCmdEndRenderPass(command_buffer);
 }
 
 void SampleRenderer::createCommandBuffers()
@@ -187,8 +189,17 @@ void SampleRenderer::recreateSwapchain()
     //              and
     //              // only after the old one is deleted.
 
+    std::shared_ptr<corevu::CoreVuSwapChain> old_swap_chain =
+        std::move(m_corevu_swapchain);
     m_corevu_swapchain = std::make_unique<corevu::CoreVuSwapChain>(
-        m_corevu_device, extent, std::move(m_corevu_swapchain));
+        m_corevu_device, extent, old_swap_chain);
+
+    if (!old_swap_chain->compareSwapFormats(*m_corevu_swapchain.get()))
+    {
+      throw std::runtime_error(
+          "FAILURE::two incompatible swapchains are created!"); // TODO callback for the main app.
+    }
+
     if (m_corevu_swapchain &&
         m_corevu_swapchain->imageCount() != m_command_buffers.size())
     {
@@ -197,7 +208,8 @@ void SampleRenderer::recreateSwapchain()
     }
   }
 
-//#error - no pipeline recreated - to be changed/fixed later
-  // createPipeline(); // if render passes are compatible (same layout of data),
-  //  the pipline can stay the same
+  // #error - no pipeline recreated - to be changed/fixed later
+  //  createPipeline(); // if render passes are compatible (same layout of
+  //  data),
+  //   the pipline can stay the same
 }
