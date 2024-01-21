@@ -1,4 +1,4 @@
-#include "render_system.hpp"
+#include "systems/render_system.hpp"
 
 // temp libs
 #define GLM_FORCE_RADIANS           // to be sure that no change depending on system
@@ -8,7 +8,7 @@
 
 // std
 #include <array>
-using namespace corevutest;
+using namespace corevu;
 
 struct SimplePushConstantData // NOTE : ALL push data constants together are
                               // limited to 128 bytes space! But it's quite
@@ -22,8 +22,7 @@ struct SimplePushConstantData // NOTE : ALL push data constants together are
              // add offset 16 bytes instead of (4bytes*2)of vec2 member offset.
 };
 
-RenderSystem::RenderSystem(
-    corevu::CoreVuDevice& device, VkRenderPass render_pass)
+RenderSystem::RenderSystem(CoreVuDevice& device, VkRenderPass render_pass)
   : m_corevu_device{device}
 {
   createPipelineLayout();
@@ -66,19 +65,18 @@ void RenderSystem::createPipeline(VkRenderPass render_pass)
       m_pipeline_layout != nullptr &&
       "Cannot create pipeline before pipeline layout");
 
-  corevu::PipelineConfigInfo pipeline_config{};
-  corevu::CoreVuPipeline::DefaultPipelineConfigInfo(pipeline_config);
+  PipelineConfigInfo pipeline_config{};
+  CoreVuPipeline::DefaultPipelineConfigInfo(pipeline_config);
   pipeline_config.renderPass = render_pass;
   pipeline_config.pipelineLayout = m_pipeline_layout;
-  m_corevu_pipeline = std::make_unique<corevu::CoreVuPipeline>(
+  m_corevu_pipeline = std::make_unique<CoreVuPipeline>(
       m_corevu_device, pipeline_config,
       "../corevu/shaders/simple_shader.vert.spv",
       "../corevu/shaders/simple_shader.frag.spv");
 }
 
 void RenderSystem::renderGameObjects(
-    VkCommandBuffer command_buffer,
-    std::vector<corevu::CoreVuGameObject>& game_objects)
+    VkCommandBuffer command_buffer, std::vector<CoreVuGameObject>& game_objects)
 {
   m_corevu_pipeline->Bind(command_buffer);
 

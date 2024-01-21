@@ -1,5 +1,5 @@
 #include "app.hpp"
-#include "render_system.hpp"
+#include <corevu/include/systems/render_system.hpp>
 
 // temp libs
 #define GLM_FORCE_RADIANS           // to be sure that no change depending on system
@@ -22,7 +22,7 @@ SampleApp::~SampleApp()
 
 void SampleApp::run()
 {
-  RenderSystem render_system{
+  corevu::RenderSystem render_system{
       m_corevu_device, m_renderer.GetSwapchainRenderpass()};
 
   while (!m_corevu_window.shouldClose())
