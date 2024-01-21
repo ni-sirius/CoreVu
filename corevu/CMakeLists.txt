@@ -16,6 +16,7 @@ list(APPEND CORE_HEADER
      include/corevu_model.hpp
      include/corevu_gameobject.hpp
      include/systems/render_system.hpp
+     include/systems/color_system.hpp
      )
 
 if (MSVC)
