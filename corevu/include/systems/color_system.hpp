@@ -1,3 +1,4 @@
+#pragma once
 #include "corevu_gameobject.hpp"
 
 // std

@@ -1,3 +1,4 @@
+#pragma once
 #include "corevu_device.hpp"
 #include "corevu_gameobject.hpp"
 #include "corevu_window.hpp"

@@ -1,3 +1,4 @@
+#pragma once
 #include <corevu/include/corevu_window.hpp>
 #include <corevu/include/corevu_swap_chain.hpp>
 
