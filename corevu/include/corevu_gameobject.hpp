@@ -26,6 +26,13 @@ struct Transform2dComponent
   }
 };
 
+//basic physics
+struct RigidBody2dComponent
+{
+  glm::vec2 velocity{0.f};
+  float mass{1.0f};
+};
+
 class CoreVuGameObject
 {
 public:
@@ -51,6 +58,7 @@ public:
   std::shared_ptr<CoreVuModel> model;
   glm::vec3 color;
   Transform2dComponent transform;
+  RigidBody2dComponent rigid_body;
 
 private:
   CoreVuGameObject(const CoreVuUid& uid) : m_uid{uid}

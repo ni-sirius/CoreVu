@@ -1,9 +1,12 @@
 #include "app.hpp"
+#include "gravity_system_test.hpp"
 
 int main(int, char**)
 {
   std::cout << "Hello user, ..  from CoreVu!\n";
+
   corevutest::SampleApp app{};
+  //corevutest::GravitySystemTestApp app{};
 
   try
   {

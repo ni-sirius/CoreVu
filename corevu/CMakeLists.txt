@@ -17,6 +17,8 @@ list(APPEND CORE_HEADER
      include/corevu_gameobject.hpp
      include/systems/render_system.hpp
      include/systems/color_system.hpp
+     include/systems/gravity_system.hpp
+     include/systems/vector_field_system.hpp
      )
 
 if (MSVC)

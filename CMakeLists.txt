@@ -18,6 +18,7 @@ list(APPEND APP_SOURCE
      )
 list(APPEND APP_HEADER
     corevu_test/app.hpp
+    corevu_test/gravity_system_test.hpp
     corevu_test/renderer.hpp
      )
 
