@@ -9,6 +9,9 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
 
 add_subdirectory(corevu)
+add_subdirectory(coremem)
+
+set(CMAKE_CXX_STANDARD 20)
 
 # add cross-platforms source files and header files
 list(APPEND APP_SOURCE
@@ -19,6 +22,7 @@ list(APPEND APP_SOURCE
 list(APPEND APP_HEADER
     corevu_test/app.hpp
     corevu_test/gravity_system_test.hpp
+    corevu_test/mem_sys_test.hpp
     corevu_test/renderer.hpp
      )
 
@@ -47,4 +51,5 @@ target_include_directories(CoreVuTest PRIVATE
 
 target_link_libraries(CoreVuTest PRIVATE
     CoreVu
+    CoreMem
 )
