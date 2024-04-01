@@ -47,9 +47,16 @@ target_include_directories(CoreVu PUBLIC
 
 find_package(Vulkan REQUIRED)
 
-target_link_libraries(CoreVu PRIVATE
+if (MSVC)
+  target_link_libraries(CoreVu PRIVATE
+    ${GLFW_PATH}/lib-vc2022/glfw3_mt.lib
+)
+else()
+  target_link_libraries(CoreVu PRIVATE
     ${GLFW_PATH}/lib-mingw-w64/libglfw3.a
-    #${GLFW_PATH}/lib-vc2022/glfw3_mt.lib
+)
+endif()
+target_link_libraries(CoreVu PRIVATE
     Vulkan::Vulkan
 )
 
