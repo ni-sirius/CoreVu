@@ -4,12 +4,14 @@ list(APPEND CORE_SOURCE
     src/LinearAllocator.cpp
     src/StackAllocator.cpp
     src/PoolAllocator.cpp
+    src/MemoryManager.cpp
      )
 list(APPEND CORE_HEADER
      include/IAllocator.hpp
      include/LinearAllocator.hpp
      include/StackAllocator.hpp
      include/PoolAllocator.hpp
+     include/MemoryManager.hpp
      )
 
 if (MSVC)
