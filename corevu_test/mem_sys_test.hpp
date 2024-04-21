@@ -1,6 +1,7 @@
 #pragma once
 
 #include <coremem/include/MemoryManager.hpp>
+#include <coremem/include/ChunkMemoryManager.hpp>
 
 #include <coremem/include/LinearAllocator.hpp>
 #include <coremem/include/StackAllocator.hpp>
@@ -14,8 +15,40 @@
 
 namespace corevutest
 {
-// virtual page size? Pages are typically 512 to 8192 bytes, with 4096 being a
-// typical value.
+/** NOTE
+* Memory allocators in rendering apps.
+  Stack-based allocators: These allocate a large segment of memory once, and
+then allocate pointers within that block of memory in response to requests from
+elsewhere in the game. This is useful to avoid context switches required by
+memory allocation, and also because you can use your own techniques to enforce
+contiguity, or specific alignment for SIMD operations. Some engines also use a
+double-ended stack where one kind of resource is loaded from the top and the
+other is loaded from the bottom. Perhaps LSR (Load and Stay Resident, the kind
+of thing that will be needed throughout the entirety of your game) from the top,
+and per-level data from the bottom.
+  Single frame memory, or double-buffered
+frame memory: Memory for operations that occur within one or two frame cycles.
+This is useful because rather than having to allocate/deallocate every frame,
+you can simply blow away last frame's data by resetting the pointer you use to
+keep track of memory to the beginning of the block.
+  Object Pools: A block of
+memory for many same-size objects, such as particles, enemies, projectiles.
+These are useful because you can easily achieve contiguity by finding the first
+unused segment in your pool. They also make iteration easy, because each object
+is at a known offset from the last.
+
+* Virtual Pages
+ Pages are typically 512 to 8192 bytes, with 4096 being a typical value.
+
+* Use cases && TODOs
+ Have one on-stack memory api class which has global allocation in
+constructor and gives access to linear and stack allocations. And tracks
+memory leaks. Have a factory which provides chunc allocators, based on pool
+allocators.
+ Provide a proxy allocator to track and debug memory.
+ Use stack allocator for systems, linear allocator for temp objects - clear
+     * before frame end, pool allocator for objects(entities,components)
+*/
 
 struct Mfoo
 {
@@ -29,15 +62,6 @@ class MemSysTest
 public:
   void run()
   {
-    /* have one on-stack memory api class which has global allocation in
-     * constructor and gives access to linear and stack allocations. And tracks
-     memory leaks. Have a
-     * factory which provides chunc allocators, based on pool allocators.
-     Provide a proxy allocator to track and debug memory.*/
-
-    /*use stack allocator for systems, linear allocator for temp objects - clear
-     * before frame end, pool allocator for objects(entities,components)*/
-
     int init_stack;
     init_stack = 4256;
     int* init_heap = static_cast<int*>(malloc(sizeof(int)));
@@ -60,7 +84,7 @@ public:
           static_cast<uint8_t*>(lin_alloc.allocate(2, alignof(uint8_t)));
       *mem = 0x7F;
       auto* mem2 = static_cast<uint32_t*>(lin_alloc.allocate(4, 4));
-      *mem2 = 0x6FFFFFFFFFFFFFFF;
+      *mem2 = 0x6FFFFFFFFFFFFFFFL;
 
       lin_alloc.clear();
     }
@@ -126,8 +150,8 @@ public:
         {
           auto* mem_l = pool_alloc.allocate(sizeof(Obj), alignof(Obj));
           auto* obj_l = new (mem_l) Obj(12);
-          // obj_l->~Obj();
-          // pool_alloc.free(mem_l);
+           obj_l->~Obj();
+           pool_alloc.free(mem_l);
         }
 
         std::cout << duration_cast<microseconds>(

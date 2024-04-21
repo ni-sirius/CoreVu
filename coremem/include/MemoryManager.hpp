@@ -12,7 +12,7 @@ namespace coremem
 mechanism to track stack memory allocations and deallocate them in the correct
 order - stack allocator based. 
 */
-class MemoryManager
+class MemoryManager final
 {
 public:
   static constexpr size_t MEMORY_CAPACITY = 134217728; // 128 MB;
@@ -26,7 +26,7 @@ public:
   inline void* Allocate(size_t memSize, const char* user = nullptr)
   {
     printf(
-        "%s allocated %d bytes of global memory.",
+        "%s allocated %zu bytes of global memory.",
         user != nullptr ? user : "Unknown", memSize);
     void* pMemory = m_MemoryAllocator->allocate(memSize, alignof(uint8_t));
 

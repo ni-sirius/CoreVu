@@ -12,6 +12,7 @@ list(APPEND CORE_HEADER
      include/StackAllocator.hpp
      include/PoolAllocator.hpp
      include/MemoryManager.hpp
+     include/ChunkMemoryManager.hpp
      )
 
 if (MSVC)
