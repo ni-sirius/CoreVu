@@ -48,6 +48,13 @@ allocators.
  Provide a proxy allocator to track and debug memory.
  Use stack allocator for systems, linear allocator for temp objects - clear
      * before frame end, pool allocator for objects(entities,components)
+
+Base on work of 
+  https://www.gamedev.net/tutorials/programming/general-and-gameplay-programming/c-custom-memory-allocation-r3010/
+  https://github.com/tiagovcosta/aquaengine/blob/master/AquaEngine/DevTools/Profiler.h
+
+  https://habr.com/ru/articles/343778/
+  https://github.com/tobias-stein/EntityComponentSystem/blob/master/EntityComponentSystem/include/ECS/Memory/ECSMM.h
 */
 
 struct Mfoo
