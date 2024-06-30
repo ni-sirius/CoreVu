@@ -1,5 +1,6 @@
 #include "app.hpp"
 #include <corevu/include/systems/render_system.hpp>
+#include <Tracy.hpp>
 
 // temp libs
 #define GLM_FORCE_RADIANS           // to be sure that no change depending on system
@@ -27,6 +28,8 @@ void SampleApp::run()
 
   while (!m_corevu_window.shouldClose())
   {
+    ZoneScoped;
+
     glfwPollEvents(); // on some pltforms processing of events can block
                       // polling. The window refresh callback can be used to
                       // fix that.
@@ -38,6 +41,8 @@ void SampleApp::run()
       m_renderer.EndSwapChainRenderPass(command_buffer);
       m_renderer.EndFrame();
     }
+
+    FrameMark;
   }
 
   vkDeviceWaitIdle(m_corevu_device.device());

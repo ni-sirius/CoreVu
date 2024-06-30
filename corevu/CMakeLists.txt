@@ -1,4 +1,8 @@
 # add cross-platforms source files and header files
+
+set(TRACY_PATH "C:/workspace/CoreVu/3rdparty/tracy-0.10")
+#add_compile_definitions(TRACY_ENABLE)
+
 list(APPEND CORE_SOURCE
     src/corevu_device.cpp
     src/corevu_window.cpp
@@ -23,11 +27,15 @@ list(APPEND CORE_HEADER
 
 if (MSVC)
      # warning level 4
-     add_compile_options(/W4)
+     #add_compile_options(/W4)
  else()
      # additional warnings
-     add_compile_options(-Wall -Wextra -Wpedantic)
+     #add_compile_options(-Wall -Wextra -Wpedantic)
  endif()
+
+ set(CMAKE_CXX_STANDARD 20)
+ #set(CMAKE_CXX_STANDARD_REQUIRED ON)
+ #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++20")
 
 add_library(CoreVu
     ${CORE_SOURCE}
@@ -36,13 +44,13 @@ add_library(CoreVu
 
 set(GLFW_PATH "C:/workspace/CoreVu/3rdparty/glfw")
 set(GLM_PATH "C:/workspace/CoreVu/3rdparty/glm-master")
-set(CMAKE_CXX_STANDARD 20)
 
 target_include_directories(CoreVu PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${GLFW_PATH}/include
     $ENV{VULKAN_SDK}/include
     ${GLM_PATH}
+    ${TRACY_PATH}/public/tracy
 )
 
 find_package(Vulkan REQUIRED)

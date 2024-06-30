@@ -2,6 +2,8 @@
 
 #include <cassert>
 
+#include <Tracy.hpp>
+
 using namespace corevu;
 
 CoreVuModel::CoreVuModel(
@@ -31,6 +33,8 @@ void CoreVuModel::Bind(VkCommandBuffer command_buffer)
 
 void CoreVuModel::createVertexBuffers(const std::vector<Vertex>& vertices)
 {
+  ZoneScoped;
+
   m_vertex_count = static_cast<uint32_t>(vertices.size());
   assert(m_vertex_count >= 3 && "Vertex cound must be at least 3");
 

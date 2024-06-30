@@ -71,8 +71,8 @@ void RenderSystem::createPipeline(VkRenderPass render_pass)
   pipeline_config.pipelineLayout = m_pipeline_layout;
   m_corevu_pipeline = std::make_unique<CoreVuPipeline>(
       m_corevu_device, pipeline_config,
-      "../corevu/shaders/simple_shader.vert.spv",
-      "../corevu/shaders/simple_shader.frag.spv");
+      "C:/workspace/CoreVu/corevu/shaders/simple_shader.vert.spv",
+      "C:/workspace/CoreVu/corevu/shaders/simple_shader.frag.spv");
 }
 
 void RenderSystem::renderGameObjects(
