@@ -14,12 +14,17 @@ struct SimplePushConstantData // NOTE : ALL push data constants together are
                               // limited to 128 bytes space! But it's quite
                               // handy for storing transformation matrices.
 {
+  glm::mat4 transform{1.f};
+  alignas(16) glm::vec3 color;
+
+  /* NOTE an 2d implementation with important note
   glm::mat2 transform{1.f};
   glm::vec2 offset; // 4 bytes * 2 = 8 bytes
   alignas(16) glm::vec3
       color; // w/o alignas will start with 9th byte // vulkan require
              // alignment of 4*size(val) for 3&4 component vectors. -> need to
              // add offset 16 bytes instead of (4bytes*2)of vec2 member offset.
+             */
 };
 
 RenderSystem::RenderSystem(CoreVuDevice& device, VkRenderPass render_pass)
@@ -82,13 +87,16 @@ void RenderSystem::renderGameObjects(
 
   for (auto& obj : game_objects)
   {
-    obj.transform.rotation =
-        glm::mod(obj.transform.rotation + 0.01f, glm::two_pi<float>());
+    obj.transform.rotation.y =
+        glm::mod(obj.transform.rotation.y + 0.01f, glm::two_pi<float>());
+    obj.transform.rotation.x =
+        glm::mod(obj.transform.rotation.x + 0.005f, glm::two_pi<float>());
+    // obj.transform.rotation.z =
+    // glm::mod(obj.transform.rotation.z + 0.0001f, glm::two_pi<float>());
 
     SimplePushConstantData push{};
-    push.offset = obj.transform.translation;
     push.color = obj.color;
-    push.transform = obj.transform.ToMat2();
+    push.transform = obj.transform.ToMat4();
 
     vkCmdPushConstants(
         command_buffer, m_pipeline_layout,

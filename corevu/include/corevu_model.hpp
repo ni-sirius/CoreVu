@@ -13,9 +13,12 @@ namespace corevu
 class CoreVuModel
 {
 public:
+  /* NOTE:
+  don't forget to update attribute description(GetAttributeDescriptions()) in vulkan every time you change
+  the Vertex struct. */
   struct Vertex
   {
-    glm::vec2 position;
+    glm::vec3 position;
     glm::vec3 color;
 
     static std::vector<VkVertexInputBindingDescription>
