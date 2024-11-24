@@ -12,6 +12,9 @@ set(TRACY_PATH "C:/workspace/CoreVu/3rdparty/tracy-0.10")
 add_compile_definitions(TRACY_ENABLE)
 
 add_subdirectory(corevu)
+add_subdirectory(coremem)
+
+set(CMAKE_CXX_STANDARD 20)
 
 # add cross-platforms source files and header files
 list(APPEND APP_SOURCE
@@ -23,12 +26,13 @@ list(APPEND APP_SOURCE
 list(APPEND APP_HEADER
     corevu_test/app.hpp
     corevu_test/gravity_system_test.hpp
+    corevu_test/mem_sys_test.hpp
     corevu_test/renderer.hpp
      )
 
 if (MSVC)
      # warning level 4
-     add_compile_options(/W4)
+     add_compile_options(/W4 /Od)
  else()
      # additional warnings
      add_compile_options(-Wall -Wextra -Wpedantic)
@@ -56,4 +60,5 @@ target_link_libraries(CoreVuTest PRIVATE
     CoreVu
     ws2_32
     dbghelp
+    CoreMem
 )

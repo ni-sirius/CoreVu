@@ -1,5 +1,6 @@
 #include "app.hpp"
 #include "gravity_system_test.hpp"
+#include "mem_sys_test.hpp"
 
 #include <iostream>
 
@@ -35,8 +36,13 @@ int main(int, char**)
   else if (in_code.find("grav") != std::string::npos)
   {
     // corevutest::GravitySystemTestApp app{};
+    //return run(app);
   }
-  else if (in_code.find("mem") != std::string::npos) {}
+  else if (in_code.find("mem") != std::string::npos)
+  {
+    corevutest::MemSysTest app{};
+    return run(app);
+  }
 
   std::cout << "No valid command\n";
   return EXIT_FAILURE;
