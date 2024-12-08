@@ -51,6 +51,11 @@ public:
     return m_corevu_swapchain->getRenderPass();
   }
 
+  float GetAspectRatio() const
+  {
+    return m_corevu_swapchain ? m_corevu_swapchain->extentAspectRatio() : 0;
+  }
+
 private:
   void createCommandBuffers();
   void freeCommandBuffers();
