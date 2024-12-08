@@ -1,5 +1,6 @@
 #include "app.hpp"
 #include <corevu/include/systems/render_system.hpp>
+#include <corevu/include/corevu_camera.hpp>
 #include <Tracy.hpp>
 
 // temp libs
@@ -31,6 +32,8 @@ void SampleApp::run()
 {
   corevu::RenderSystem render_system{
       m_corevu_device, m_renderer.GetSwapchainRenderpass()};
+  corevu::CoreVuCamera camera{};
+  camera.setOrthographicProjection(-1, 1, -1, 1, -1, 1);
 
   while (!m_corevu_window.shouldClose())
   {
@@ -44,12 +47,13 @@ void SampleApp::run()
     if (auto command_buffer = m_renderer.BeginFrame())
     {
       m_renderer.BeginSwapChainRenderPass(command_buffer);
-      render_system.renderGameObjects(command_buffer, m_game_objects);
+      render_system.renderGameObjects(command_buffer, m_game_objects, camera);
       m_renderer.EndSwapChainRenderPass(command_buffer);
       m_renderer.EndFrame();
     }
     const auto frame_finish = std::chrono::steady_clock::now();
-    const std::chrono::duration<double, std::milli> frame_time = frame_finish - frame_start;
+    const std::chrono::duration<double, std::milli> frame_time =
+        frame_finish - frame_start;
     if (frame_time < FRAME_DURATION)
     {
       std::this_thread::sleep_for(FRAME_DURATION - frame_time);

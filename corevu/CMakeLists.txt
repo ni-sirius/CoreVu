@@ -10,6 +10,7 @@ list(APPEND CORE_SOURCE
     src/corevu_swap_chain.cpp
     src/corevu_model.cpp
     src/corevu_gameobject.cpp
+    src/corevu_camera.cpp
     src/systems/render_system.cpp
      )
 list(APPEND CORE_HEADER
@@ -19,6 +20,7 @@ list(APPEND CORE_HEADER
      include/corevu_swap_chain.hpp
      include/corevu_model.hpp
      include/corevu_gameobject.hpp
+     include/corevu_camera.hpp
      include/systems/render_system.hpp
      include/systems/color_system.hpp
      include/systems/gravity_system.hpp

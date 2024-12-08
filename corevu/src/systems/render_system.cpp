@@ -81,7 +81,8 @@ void RenderSystem::createPipeline(VkRenderPass render_pass)
 }
 
 void RenderSystem::renderGameObjects(
-    VkCommandBuffer command_buffer, std::vector<CoreVuGameObject>& game_objects)
+    VkCommandBuffer command_buffer, std::vector<CoreVuGameObject>& game_objects,
+    const CoreVuCamera& camera)
 {
   m_corevu_pipeline->Bind(command_buffer);
 
@@ -96,7 +97,9 @@ void RenderSystem::renderGameObjects(
 
     SimplePushConstantData push{};
     push.color = obj.color;
-    push.transform = obj.transform.ToMat4();
+    push.transform =
+        camera.getProjection() *
+        obj.transform.ToMat4(); // NOTE/TODO To be moved into shader code.
 
     vkCmdPushConstants(
         command_buffer, m_pipeline_layout,

@@ -1,4 +1,6 @@
 #pragma once
+
+#include "corevu_camera.hpp"
 #include "corevu_device.hpp"
 #include "corevu_gameobject.hpp"
 #include "corevu_window.hpp"
@@ -23,7 +25,7 @@ public:
 
   void renderGameObjects(
       VkCommandBuffer command_buffer,
-      std::vector<CoreVuGameObject>& game_objects);
+      std::vector<CoreVuGameObject>& game_objects, const CoreVuCamera& camera);
 
 private:
   void createPipelineLayout();
