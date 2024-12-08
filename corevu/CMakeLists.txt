@@ -12,6 +12,7 @@ list(APPEND CORE_SOURCE
     src/corevu_gameobject.cpp
     src/corevu_camera.cpp
     src/systems/render_system.cpp
+    src/ext/keyboard_movement_controller.cpp
      )
 list(APPEND CORE_HEADER
      include/corevu_device.hpp
@@ -25,6 +26,7 @@ list(APPEND CORE_HEADER
      include/systems/color_system.hpp
      include/systems/gravity_system.hpp
      include/systems/vector_field_system.hpp
+     include/ext/keyboard_movement_controller.hpp
      )
 
 if (MSVC)

@@ -90,12 +90,13 @@ void RenderSystem::renderGameObjects(
 
   for (auto& obj : game_objects)
   {
-    obj.transform.rotation.y =
-        glm::mod(obj.transform.rotation.y + 0.01f, glm::two_pi<float>());
-    obj.transform.rotation.x =
-        glm::mod(obj.transform.rotation.x + 0.005f, glm::two_pi<float>());
+    // TEST ROTATION FOR ALL GAME OBJECTS(TODO remove)
+    // obj.transform.rotation.y =
+    //     glm::mod(obj.transform.rotation.y + 0.01f, glm::two_pi<float>());
+    // obj.transform.rotation.x =
+    //     glm::mod(obj.transform.rotation.x + 0.005f, glm::two_pi<float>());
     // obj.transform.rotation.z =
-    // glm::mod(obj.transform.rotation.z + 0.0001f, glm::two_pi<float>());
+    //     glm::mod(obj.transform.rotation.z + 0.0001f, glm::two_pi<float>());
 
     SimplePushConstantData push{};
     push.color = obj.color;

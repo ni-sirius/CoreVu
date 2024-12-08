@@ -1,4 +1,5 @@
 #include "app.hpp"
+#include <corevu/include/ext/keyboard_movement_controller.hpp>
 #include <corevu/include/systems/render_system.hpp>
 #include <corevu/include/corevu_camera.hpp>
 #include <Tracy.hpp>
@@ -33,13 +34,34 @@ void SampleApp::run()
   corevu::RenderSystem render_system{
       m_corevu_device, m_renderer.GetSwapchainRenderpass()};
   corevu::CoreVuCamera camera{};
-  //camera.setViewDirection(glm::vec3(0.f), glm::vec3(0.5f, 0.f, 1.f));
-  camera.setViewTarget(glm::vec3(1.f, -2.f, 2.f), glm::vec3(0.f, 0.f, 2.5f));
+  // camera.setViewDirection(glm::vec3(0.f), glm::vec3(0.5f, 0.f, 1.f));
+  //camera.setViewTarget(glm::vec3(1.f, -2.f, 2.f), glm::vec3(0.f, 0.f, 2.5f));
 
+  auto viewer_object = corevu::CoreVuGameObject::Create();
+  corevu::KeyboardMovementController keyboard_camera_controller{};
+
+  auto frame_start = std::chrono::steady_clock::now();
+  auto current_time = frame_start;
   while (!m_corevu_window.shouldClose())
   {
     ZoneScoped;
-    const auto frame_start = std::chrono::steady_clock::now();
+
+    glfwPollEvents(); // on some pltforms processing of events can block
+                      // polling. The window refresh callback can be used to
+                      // fix that.
+
+    auto now = std::chrono::steady_clock::now();
+    const auto dt_sec =
+        std::chrono::duration<float, std::chrono::seconds::period>(
+            now - current_time)
+            .count();
+    current_time = now;
+
+    keyboard_camera_controller.moveInPlaneXZ(
+        m_corevu_window.GetGLFWwindow(), dt_sec,
+        viewer_object); // camera position preserve in viewerobj.
+    camera.setViewYXZ(
+        viewer_object.transform.translation, viewer_object.transform.rotation);
 
     // NOTE compensate stretching of Vulkan viewport to swapchain
     // renderbuffersize with aspect_ratio in projection matrix
@@ -48,10 +70,6 @@ void SampleApp::run()
     // 1); //bottom and top shall be -1 1
     camera.setPerspectiveProjection(
         glm::radians(50.f), aspect_ratio, 0.1f, 10.f);
-
-    glfwPollEvents(); // on some pltforms processing of events can block
-                      // polling. The window refresh callback can be used to
-                      // fix that.
 
     if (auto command_buffer = m_renderer.BeginFrame())
     {
@@ -67,6 +85,7 @@ void SampleApp::run()
     {
       std::this_thread::sleep_for(FRAME_DURATION - frame_time);
     }
+    frame_start = std::chrono::steady_clock::now();
 
     FrameMark;
   }

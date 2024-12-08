@@ -28,11 +28,23 @@ public:
   {
     return {static_cast<uint32_t>(m_width), static_cast<uint32_t>(m_height)};
   }
-  bool WasWindowResized() {return m_framebuffer_is_resized;}
-  void ResetWindowResized() {m_framebuffer_is_resized = false;}
+  bool WasWindowResized()
+  {
+    return m_framebuffer_is_resized;
+  }
+  void ResetWindowResized()
+  {
+    m_framebuffer_is_resized = false;
+  }
+
+  GLFWwindow* GetGLFWwindow() const
+  {
+    return m_window;
+  }
 
 private:
-  static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
+  static void framebufferResizeCallback(
+      GLFWwindow* window, int width, int height);
   void initWindow();
 
 private:
