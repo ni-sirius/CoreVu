@@ -33,6 +33,8 @@ void SampleApp::run()
   corevu::RenderSystem render_system{
       m_corevu_device, m_renderer.GetSwapchainRenderpass()};
   corevu::CoreVuCamera camera{};
+  //camera.setViewDirection(glm::vec3(0.f), glm::vec3(0.5f, 0.f, 1.f));
+  camera.setViewTarget(glm::vec3(1.f, -2.f, 2.f), glm::vec3(0.f, 0.f, 2.5f));
 
   while (!m_corevu_window.shouldClose())
   {
@@ -42,8 +44,10 @@ void SampleApp::run()
     // NOTE compensate stretching of Vulkan viewport to swapchain
     // renderbuffersize with aspect_ratio in projection matrix
     const float aspect_ratio = m_renderer.GetAspectRatio();
-    camera.setOrthographicProjection(-aspect_ratio, aspect_ratio, -1, 1, -1, 1); //bottom and top shall be -1 1
-    //camera.setPerspectiveProjection(glm::radians(50.f), aspect_ratio, 0.1f, 10.f);
+    // camera.setOrthographicProjection(-aspect_ratio, aspect_ratio, -1, 1, -1,
+    // 1); //bottom and top shall be -1 1
+    camera.setPerspectiveProjection(
+        glm::radians(50.f), aspect_ratio, 0.1f, 10.f);
 
     glfwPollEvents(); // on some pltforms processing of events can block
                       // polling. The window refresh callback can be used to
@@ -138,7 +142,9 @@ void SampleApp::loadGameObjects()
   auto model = createCubeModel(m_corevu_device, {.0f, .0f, .0f});
   auto cube = corevu::CoreVuGameObject::Create();
   cube.model = model;
-  cube.transform.translation = {.0f, .0f, .5f}; //z 2.5 for othographic (look in +z direction)
+  cube.transform.translation = {
+      .0f, .0f, 2.5f}; // z 2.5 for perspective, 0.5f for othographic (look in
+                       // +z direction)
   cube.transform.scale = {.5f, .5f, .5f};
   m_game_objects.push_back(std::move(cube));
 

@@ -86,6 +86,8 @@ void RenderSystem::renderGameObjects(
 {
   m_corevu_pipeline->Bind(command_buffer);
 
+  const auto projection_view_mat = camera.getProjection() * camera.getView();
+
   for (auto& obj : game_objects)
   {
     obj.transform.rotation.y =
@@ -98,7 +100,7 @@ void RenderSystem::renderGameObjects(
     SimplePushConstantData push{};
     push.color = obj.color;
     push.transform =
-        camera.getProjection() *
+        projection_view_mat *
         obj.transform.ToMat4(); // NOTE/TODO To be moved into shader code.
 
     vkCmdPushConstants(
