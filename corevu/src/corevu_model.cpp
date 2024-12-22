@@ -1,8 +1,32 @@
 #include "corevu_model.hpp"
+#include <global_utils.hpp>
 
-#include <cassert>
-
+// libs
 #include <Tracy.hpp>
+#define TINYOBJLOADER_IMPLEMENTATION
+#include <tiny_obj_loader.h>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/hash.hpp>
+
+// std
+#include <cassert>
+#include <unordered_map>
+#include <iostream>
+
+namespace std
+{
+  template <>
+  struct hash<corevu::CoreVuModel::Vertex>
+  {
+    size_t operator()(corevu::CoreVuModel::Vertex const& vertex) const
+    {
+      size_t seed = 0;
+      corevu::hashCombine(seed, vertex.position, vertex.color, vertex.normal,
+                          vertex.texCoord);
+      return seed;
+    }
+  };
+}
 
 using namespace corevu;
 
@@ -35,6 +59,16 @@ void CoreVuModel::Draw(VkCommandBuffer command_buffer)
   {
     vkCmdDraw(command_buffer, m_vertex_count, 1, 0, 0);
   }
+}
+
+std::shared_ptr<CoreVuModel> corevu::CoreVuModel::CreateModelFromPath(
+    CoreVuDevice& device, const std::string& path)
+{
+  Builder builder{};
+  builder.loadModel(path);
+  std::cout << "Load Model:" << path << " vertex count:" << builder.vertices.size() << std::endl;
+
+  return std::make_shared<CoreVuModel>(device, builder);
 }
 
 void CoreVuModel::Bind(VkCommandBuffer command_buffer)
@@ -189,4 +223,77 @@ CoreVuModel::Vertex::GetAttributeDescriptions()
   attribute_descriptions[1].offset = offsetof(Vertex, color);
 
   return attribute_descriptions;
+}
+
+// Builder methods implementation //
+
+void corevu::CoreVuModel::Builder::loadModel(const std::string& filename)
+{
+  ZoneScoped;
+
+  tinyobj::attrib_t attrib;
+  std::vector<tinyobj::shape_t> shapes;
+  std::vector<tinyobj::material_t> materials;
+  std::string warn, err;
+
+  if (!tinyobj::LoadObj(
+          &attrib, &shapes, &materials, &warn, &err, filename.c_str()))
+  {
+    throw std::runtime_error(warn + err);
+  }
+
+  vertices.clear();
+  indices.clear();
+
+  std::unordered_map<Vertex, Index> unique_vertices{};
+  for (const auto& shape : shapes)
+  {
+    for (const auto& index : shape.mesh.indices)
+    {
+      Vertex vertex{};
+
+      if (index.vertex_index >= 0)
+      {
+        vertex.position = {
+            attrib.vertices[3 * index.vertex_index + 0],
+            attrib.vertices[3 * index.vertex_index + 1],
+            attrib.vertices[3 * index.vertex_index + 2]};
+
+        const auto color_index = index.vertex_index * 3 + 2;
+        if (color_index < attrib.colors.size())
+        {
+          vertex.color = {
+              attrib.colors[color_index - 2], attrib.colors[color_index - 1],
+              attrib.colors[color_index - 0]};
+        }
+        else
+        {
+          vertex.color = {1.0f, 1.0f, 1.0f};
+        }
+      }
+
+      if (index.normal_index >= 0)
+      {
+        vertex.normal = {
+            attrib.normals[3 * index.normal_index + 0],
+            attrib.normals[3 * index.normal_index + 1],
+            attrib.normals[3 * index.normal_index + 2]};
+      }
+
+      if (index.texcoord_index >= 0)
+      {
+        vertex.texCoord = {
+            attrib.texcoords[2 * index.texcoord_index + 0],
+            1.0f - attrib.texcoords[2 * index.texcoord_index + 1]};
+      }
+
+      if (unique_vertices.count(vertex) == 0)
+      {
+        unique_vertices[vertex] = Index{static_cast<uint32_t>(vertices.size())};
+        vertices.push_back(vertex);
+      }
+
+      indices.push_back(unique_vertices[vertex]);
+    }
+  }
 }

@@ -6,6 +6,7 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE // instead of -1 to 1 ?
 #include <glm/glm.hpp>
 
+#include <memory>
 #include <vector>
 
 namespace corevu
@@ -20,19 +21,42 @@ public:
   {
     glm::vec3 position;
     glm::vec3 color;
+    glm::vec3 normal;
+    glm::vec2 texCoord;
 
     static std::vector<VkVertexInputBindingDescription>
     GetBindingDescriptions();
     static std::vector<VkVertexInputAttributeDescription>
     GetAttributeDescriptions();
+
+    bool operator==(const Vertex& other) const
+    {
+      return position == other.position && color == other.color &&
+             normal == other.normal && texCoord == other.texCoord;
+    }
+    bool operator!=(const Vertex& other) const
+    {
+      return !(*this == other);
+    }
   };
 
   struct Index
   {
     uint32_t value;
 
+    Index() : value(0)
+    {
+    }
     Index(uint32_t v) : value(v)
     {
+    }
+    Index& operator=(const Index& other)
+    {
+      if (this != &other)
+      {
+        value = other.value;
+      }
+      return *this;
     }
   };
 
@@ -40,6 +64,8 @@ public:
   {
     std::vector<Vertex> vertices{};
     std::vector<Index> indices{};
+
+    void loadModel(const std::string& filename);
   };
 
   CoreVuModel(CoreVuDevice& device, const Builder& builder);
@@ -47,6 +73,9 @@ public:
 
   CoreVuModel(const CoreVuModel&) = delete;
   CoreVuModel& operator=(const CoreVuModel&) = delete;
+
+  static std::shared_ptr<CoreVuModel> CreateModelFromPath(
+      CoreVuDevice& device, const std::string& path);
 
   void Bind(VkCommandBuffer command_buffer);
   void Draw(VkCommandBuffer command_buffer);

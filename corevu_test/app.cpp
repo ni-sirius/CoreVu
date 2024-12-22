@@ -151,14 +151,16 @@ std::shared_ptr<corevu::CoreVuModel> createCubeModel(
 void SampleApp::loadGameObjects()
 {
   // 3d solution
-  auto model = createCubeModel(m_corevu_device, {.0f, .0f, .0f});
-  auto cube = corevu::CoreVuGameObject::Create();
-  cube.model = model;
-  cube.transform.translation = {
+  auto model = corevu::CoreVuModel::CreateModelFromPath(
+      m_corevu_device, "C:\\workspace\\CoreVu\\assets\\models\\smooth_vase.obj");
+   //createCubeModel(m_corevu_device, {.0f, .0f, .0f});
+  auto object = corevu::CoreVuGameObject::Create();
+  object.model = model;
+  object.transform.translation = {
       .0f, .0f, 2.5f}; // z 2.5 for perspective, 0.5f for othographic (look in
                        // +z direction)
-  cube.transform.scale = {.5f, .5f, .5f};
-  m_game_objects.push_back(std::move(cube));
+  object.transform.scale = {2.5f, 2.5f, 2.5f};
+  m_game_objects.push_back(std::move(object));
 
   // base solution
   // {
