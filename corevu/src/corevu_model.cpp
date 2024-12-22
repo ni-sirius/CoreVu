@@ -60,22 +60,55 @@ void CoreVuModel::createVertexBuffers(const std::vector<Vertex>& vertices)
   assert(m_vertex_count >= 3 && "Vertex cound must be at least 3");
 
   VkDeviceSize buffer_size = sizeof(vertices[0]) * m_vertex_count;
+
+  /* Use more optimized local device mem on GPU side using
+  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT. The momeory is accessible only from gpu,
+  that's why we creating staging buffer and then copy it's contents to GPU Local
+  buffer.
+  It makes sense to use only host memory for less frequently updated data, like
+  textures, because it's slower to access from gpu.
+
+  Staging buffers for now are optimal only for static data uploaded at the start
+  of the app.
+
+  the m_corevu_device.copyBuffer() is not optimal though, because it uses single
+  time command, could be more efficint to use some memory barrier stuff here.*/
+  VkBuffer staging_buffer;
+  VkDeviceMemory staging_buffer_memory;
   m_corevu_device.createBuffer(
-      buffer_size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+      buffer_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, /* make buffer as source
+                                                        for memory operation */
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT /* make buffer memory writable for cpu
                                            */
           | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT /* make cpu buffer mem in sync
                                                     with gpu buffer mem */
       ,
-      m_vertex_buffer, m_buffer_memory);
+      staging_buffer, staging_buffer_memory);
 
   void* data;
   vkMapMemory(
-      m_corevu_device.device(), m_buffer_memory, 0, buffer_size, 0,
+      m_corevu_device.device(), staging_buffer_memory, 0, buffer_size, 0,
       &data); /* creates buffer (data) on cpu size, corresponding with gpu
                  buffer */
   memcpy(data, vertices.data(), static_cast<size_t>(buffer_size));
-  vkUnmapMemory(m_corevu_device.device(), m_buffer_memory);
+  vkUnmapMemory(m_corevu_device.device(), staging_buffer_memory);
+
+  m_corevu_device.createBuffer(
+      buffer_size,
+      VK_BUFFER_USAGE_VERTEX_BUFFER_BIT /* use buffer as vertex buf */ |
+          VK_BUFFER_USAGE_TRANSFER_DST_BIT, /* make buffer as destination
+for memory operation */
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT /* make buffer memory writable for gpu
+                                             with most efficent speed*/
+      ,
+      m_vertex_buffer, m_buffer_memory);
+
+  m_corevu_device.copyBuffer(
+      staging_buffer, m_vertex_buffer,
+      buffer_size); // to be optimized with memory barrier
+
+  vkDestroyBuffer(m_corevu_device.device(), staging_buffer, nullptr);
+  vkFreeMemory(m_corevu_device.device(), staging_buffer_memory, nullptr);
 
   /* if there was no VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, we would need to call
    * vkFlushMappedMemoryRanges() in order to sync cpu and gpu buffers */
@@ -94,18 +127,41 @@ void CoreVuModel::createIndexBuffers(const std::vector<Index>& indices)
   }
 
   VkDeviceSize buffer_size = sizeof(indices[0]) * m_index_count;
+
+  VkBuffer staging_buffer;
+  VkDeviceMemory staging_buffer_memory;
   m_corevu_device.createBuffer(
-      buffer_size, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-      m_index_buffer, m_index_buffer_memory);
+      buffer_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, /* make buffer as source
+                                                        for memory operation */
+      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT /* make buffer memory writable for cpu
+                                           */
+          | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT /* make cpu buffer mem in sync
+                                                    with gpu buffer mem */
+      ,
+      staging_buffer, staging_buffer_memory);
 
   void* data;
   vkMapMemory(
-      m_corevu_device.device(), m_index_buffer_memory, 0, buffer_size, 0,
-      &data);
+      m_corevu_device.device(), staging_buffer_memory, 0, buffer_size, 0,
+      &data); /* creates buffer (data) on cpu size, corresponding with gpu
+                 buffer */
   memcpy(data, indices.data(), static_cast<size_t>(buffer_size));
-  vkUnmapMemory(m_corevu_device.device(), m_index_buffer_memory);
+  vkUnmapMemory(m_corevu_device.device(), staging_buffer_memory);
+
+  m_corevu_device.createBuffer(
+      buffer_size,
+      VK_BUFFER_USAGE_INDEX_BUFFER_BIT /* use buffer as indexes buf */ |
+          VK_BUFFER_USAGE_TRANSFER_DST_BIT, /* make buffer as destination
+for memory operation */
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT /* make buffer memory writable for gpu
+                                             with most efficent speed*/
+      ,
+      m_index_buffer, m_index_buffer_memory);
+
+  m_corevu_device.copyBuffer(staging_buffer, m_index_buffer, buffer_size);
+
+  vkDestroyBuffer(m_corevu_device.device(), staging_buffer, nullptr);
+  vkFreeMemory(m_corevu_device.device(), staging_buffer_memory, nullptr);
 }
 
 std::vector<VkVertexInputBindingDescription>
