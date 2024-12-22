@@ -1,6 +1,9 @@
-# add cross-platforms source files and header files
+# add cross-platforms paths source files and header files
 
+set(GLFW_PATH "C:/workspace/CoreVu/3rdparty/glfw")
+set(GLM_PATH "C:/workspace/CoreVu/3rdparty/glm-master")
 set(TRACY_PATH "C:/workspace/CoreVu/3rdparty/tracy-0.10")
+set(TINYOBJLOADER_PATH "C:/workspace/CoreVu/3rdparty/tinyobjloader")
 #add_compile_definitions(TRACY_ENABLE)
 
 list(APPEND CORE_SOURCE
@@ -46,15 +49,13 @@ add_library(CoreVu
     ${CORE_HEADER}
 )
 
-set(GLFW_PATH "C:/workspace/CoreVu/3rdparty/glfw")
-set(GLM_PATH "C:/workspace/CoreVu/3rdparty/glm-master")
-
 target_include_directories(CoreVu PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${GLFW_PATH}/include
     $ENV{VULKAN_SDK}/include
     ${GLM_PATH}
     ${TRACY_PATH}/public/tracy
+    ${TINYOBJLOADER_PATH}
 )
 
 find_package(Vulkan REQUIRED)

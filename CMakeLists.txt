@@ -8,6 +8,9 @@ set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
 
+set(GLFW_PATH "C:/workspace/CoreVu/3rdparty/glfw")
+set(GLM_PATH "C:/workspace/CoreVu/3rdparty/glm-master")
+set(TINYOBJLOADER_PATH "C:/workspace/CoreVu/3rdparty/tinyobjloader")
 set(TRACY_PATH "C:/workspace/CoreVu/3rdparty/tracy-0.10")
 add_compile_definitions(TRACY_ENABLE)
 
@@ -45,15 +48,13 @@ add_executable(CoreVuTest
     ${APP_HEADER}
 )
 
-set(GLFW_PATH "C:/workspace/CoreVu/3rdparty/glfw")
-set(GLM_PATH "C:/workspace/CoreVu/3rdparty/glm-master")
-
 target_include_directories(CoreVuTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${GLFW_PATH}/include
     $ENV{VULKAN_SDK}/include
     ${GLM_PATH}
     ${TRACY_PATH}/public/tracy
+    ${TINYOBJLOADER_PATH}
 )
 
 target_link_libraries(CoreVuTest PRIVATE
