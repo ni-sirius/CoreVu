@@ -14,8 +14,8 @@ class CoreVuModel
 {
 public:
   /* NOTE:
-  don't forget to update attribute description(GetAttributeDescriptions()) in vulkan every time you change
-  the Vertex struct. */
+  don't forget to update attribute description(GetAttributeDescriptions()) in
+  vulkan every time you change the Vertex struct. */
   struct Vertex
   {
     glm::vec3 position;
@@ -27,7 +27,22 @@ public:
     GetAttributeDescriptions();
   };
 
-  CoreVuModel(CoreVuDevice& device, const std::vector<Vertex>& vertices);
+  struct Index
+  {
+    uint32_t value;
+
+    Index(uint32_t v) : value(v)
+    {
+    }
+  };
+
+  struct Builder
+  {
+    std::vector<Vertex> vertices{};
+    std::vector<Index> indices{};
+  };
+
+  CoreVuModel(CoreVuDevice& device, const Builder& builder);
   ~CoreVuModel();
 
   CoreVuModel(const CoreVuModel&) = delete;
@@ -38,6 +53,7 @@ public:
 
 private:
   void createVertexBuffers(const std::vector<Vertex>& vertices);
+  void createIndexBuffers(const std::vector<Index>& indices);
 
 private:
   CoreVuDevice& m_corevu_device;
@@ -52,5 +68,10 @@ private:
   VkBuffer m_vertex_buffer;
   VkDeviceMemory m_buffer_memory;
   uint32_t m_vertex_count;
+
+  bool m_had_index_buffer;
+  VkBuffer m_index_buffer;
+  VkDeviceMemory m_index_buffer_memory;
+  uint32_t m_index_count;
 };
 } // namespace corevu
