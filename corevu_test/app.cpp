@@ -159,7 +159,7 @@ void SampleApp::loadGameObjects()
   object.transform.translation = {
       .0f, .0f, 2.5f}; // z 2.5 for perspective, 0.5f for othographic (look in
                        // +z direction)
-  object.transform.scale = {2.5f, 2.5f, 2.5f};
+  object.transform.scale = {2.5f, .5f, 2.5f};
   m_game_objects.push_back(std::move(object));
 
   // base solution

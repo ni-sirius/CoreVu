@@ -15,7 +15,7 @@ struct SimplePushConstantData // NOTE : ALL push data constants together are
                               // handy for storing transformation matrices.
 {
   glm::mat4 transform{1.f};
-  alignas(16) glm::vec3 color;
+  glm::mat4 model_matrix{1.f};
 
   /* NOTE an 2d implementation with important note
   glm::mat2 transform{1.f};
@@ -99,10 +99,10 @@ void RenderSystem::renderGameObjects(
     //     glm::mod(obj.transform.rotation.z + 0.0001f, glm::two_pi<float>());
 
     SimplePushConstantData push{};
-    push.color = obj.color;
-    push.transform =
-        projection_view_mat *
-        obj.transform.ToMat4(); // NOTE/TODO To be moved into shader code.
+    const auto model_matrix = obj.transform.ToMat4();
+    push.model_matrix = model_matrix;
+    push.transform = projection_view_mat *
+                     model_matrix; // NOTE/TODO To be moved into shader code.
 
     vkCmdPushConstants(
         command_buffer, m_pipeline_layout,

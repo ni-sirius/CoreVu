@@ -15,18 +15,18 @@
 
 namespace std
 {
-  template <>
-  struct hash<corevu::CoreVuModel::Vertex>
+template <>
+struct hash<corevu::CoreVuModel::Vertex>
+{
+  size_t operator()(corevu::CoreVuModel::Vertex const& vertex) const
   {
-    size_t operator()(corevu::CoreVuModel::Vertex const& vertex) const
-    {
-      size_t seed = 0;
-      corevu::hashCombine(seed, vertex.position, vertex.color, vertex.normal,
-                          vertex.texCoord);
-      return seed;
-    }
-  };
-}
+    size_t seed = 0;
+    corevu::hashCombine(
+        seed, vertex.position, vertex.color, vertex.normal, vertex.texCoord);
+    return seed;
+  }
+};
+} // namespace std
 
 using namespace corevu;
 
@@ -66,7 +66,8 @@ std::shared_ptr<CoreVuModel> corevu::CoreVuModel::CreateModelFromPath(
 {
   Builder builder{};
   builder.loadModel(path);
-  std::cout << "Load Model:" << path << " vertex count:" << builder.vertices.size() << std::endl;
+  std::cout << "Load Model:" << path
+            << " vertex count:" << builder.vertices.size() << std::endl;
 
   return std::make_shared<CoreVuModel>(device, builder);
 }
@@ -211,16 +212,40 @@ CoreVuModel::Vertex::GetBindingDescriptions()
 std::vector<VkVertexInputAttributeDescription>
 CoreVuModel::Vertex::GetAttributeDescriptions()
 {
-  std::vector<VkVertexInputAttributeDescription> attribute_descriptions(2);
-  attribute_descriptions[0].binding = 0;
-  attribute_descriptions[0].location = 0;
-  attribute_descriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-  attribute_descriptions[0].offset = offsetof(Vertex, position); /* 0 */
-
-  attribute_descriptions[1].binding = 0;
-  attribute_descriptions[1].location = 1;
-  attribute_descriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-  attribute_descriptions[1].offset = offsetof(Vertex, color);
+  std::vector<VkVertexInputAttributeDescription> attribute_descriptions{};
+  {
+    VkVertexInputAttributeDescription attribute_description{};
+    attribute_description.location = 0; // location in shader
+    attribute_description.binding = 0; // binding in shader
+    attribute_description.format = VK_FORMAT_R32G32B32_SFLOAT; // 3 floats
+    attribute_description.offset = offsetof(Vertex, position); // offset in
+                                                               // struct
+    attribute_descriptions.push_back(std::move(attribute_description));
+  }
+  {
+    VkVertexInputAttributeDescription attribute_description{};
+    attribute_description.location = 1;
+    attribute_description.binding = 0;
+    attribute_description.format = VK_FORMAT_R32G32B32_SFLOAT;
+    attribute_description.offset = offsetof(Vertex, color);
+    attribute_descriptions.push_back(std::move(attribute_description));
+  }
+  {
+    VkVertexInputAttributeDescription attribute_description{};
+    attribute_description.location = 2;
+    attribute_description.binding = 0;
+    attribute_description.format = VK_FORMAT_R32G32B32_SFLOAT;
+    attribute_description.offset = offsetof(Vertex, normal);
+    attribute_descriptions.push_back(std::move(attribute_description));
+  }
+  {
+    VkVertexInputAttributeDescription attribute_description{};
+    attribute_description.location = 3;
+    attribute_description.binding = 0;
+    attribute_description.format = VK_FORMAT_R32G32_SFLOAT;
+    attribute_description.offset = offsetof(Vertex, texCoord);
+    attribute_descriptions.push_back(std::move(attribute_description));
+  }
 
   return attribute_descriptions;
 }
@@ -259,17 +284,10 @@ void corevu::CoreVuModel::Builder::loadModel(const std::string& filename)
             attrib.vertices[3 * index.vertex_index + 1],
             attrib.vertices[3 * index.vertex_index + 2]};
 
-        const auto color_index = index.vertex_index * 3 + 2;
-        if (color_index < attrib.colors.size())
-        {
-          vertex.color = {
-              attrib.colors[color_index - 2], attrib.colors[color_index - 1],
-              attrib.colors[color_index - 0]};
-        }
-        else
-        {
-          vertex.color = {1.0f, 1.0f, 1.0f};
-        }
+        vertex.color = {
+            attrib.colors[3 * index.vertex_index + 0],
+            attrib.colors[3 * index.vertex_index + 1],
+            attrib.colors[3 * index.vertex_index + 2]};
       }
 
       if (index.normal_index >= 0)
