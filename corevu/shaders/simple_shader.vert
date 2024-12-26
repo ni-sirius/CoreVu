@@ -11,14 +11,14 @@ layout(location = 0) out vec3 fragColor;
 
 layout(push_constant) uniform Push
 {
-  mat4 transform; // projection * view * model
-  mat4 modelTransform;
+  mat4 transform;    // projection * view * model
+  mat4 normalMatrix; // transpose(inverse(mat3(model)))
 }
 push;
 
 const vec3 lightDir =
     normalize(vec3(1.0, -3.0, -1.0)); // hardcoded light direction test
-const float ambientValue = 0.1;         // hardcoded ambient value test
+const float ambientValue = 0.1;       // hardcoded ambient value test
 
 void main()
 {
@@ -31,14 +31,22 @@ void main()
       vec4(position, 1.0); // note w=1.0 for position, 0.0 for direction
 
   // Normals scaling handling
-  // * this option is valid only if all object could be scaled uniformly e.g. use float scale instead of vec3 scale.
-  // vec3 normalsWorld = normalize(mat3(push.modelTransform) * normal);
-  // * this option is valid, but it's not recommented because of gpu overhead
-  mat3 normalMatrix = transpose(inverse(mat3(push.modelTransform)));
-  vec3 normalsWorld = normalize(normalMatrix * normal);
+  // *1 this option is valid only if all object could be scaled uniformly e.g.
+  // use float scale instead of vec3 scale. vec3 normalsWorld =
+  // normalize(mat3(push.modelTransform) * normal);
+  // *2 this option is valid, but
+  // it's not recommented because of gpu overhead
+  // mat3 normalMatrix = transpose(inverse(mat3(push.modelTransform)));
+  // vec3 normalsWorld = normalize(normalMatrix * normal);
+  // *3 this option is valid and recommended, but adds addition engine
+  // complexity) NOTE: The optimal way would be using approach 1 if object is
+  // static an won't be scaled non-uniformly. If object is scaled on creation
+  // and not scaled - use approach 3. If object is scaled in runtime - use
+  // approach 2.
+  vec3 normalsWorld = normalize(mat3(push.normalMatrix) * normal);
 
-  float intensity = ambientValue +
-      max(dot(normalsWorld, lightDir), 0.0); // temporary light intensity
+  float intensity = ambientValue + max(dot(normalsWorld, lightDir),
+                                       0.0); // temporary light intensity
 
   fragColor = intensity * color;
 }

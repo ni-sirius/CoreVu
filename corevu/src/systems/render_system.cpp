@@ -15,7 +15,7 @@ struct SimplePushConstantData // NOTE : ALL push data constants together are
                               // handy for storing transformation matrices.
 {
   glm::mat4 transform{1.f};
-  glm::mat4 model_matrix{1.f};
+  glm::mat4 normal_matrix{1.f};
 
   /* NOTE an 2d implementation with important note
   glm::mat2 transform{1.f};
@@ -100,7 +100,7 @@ void RenderSystem::renderGameObjects(
 
     SimplePushConstantData push{};
     const auto model_matrix = obj.transform.ToMat4();
-    push.model_matrix = model_matrix;
+    push.normal_matrix = obj.transform.GetNormalMatrix();
     push.transform = projection_view_mat *
                      model_matrix; // NOTE/TODO To be moved into shader code.
 
