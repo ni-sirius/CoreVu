@@ -44,10 +44,28 @@ if (MSVC)
  #set(CMAKE_CXX_STANDARD_REQUIRED ON)
  #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++20")
 
-add_library(CoreVu
-    ${CORE_SOURCE}
-    ${CORE_HEADER}
+ add_library(CoreVu
+ ${CORE_SOURCE}
+ ${CORE_HEADER}
 )
+
+# Add custom command to run compile_shaders.bat
+add_custom_command(
+    TARGET CoreVu
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E env cmd /c compile_shaders.bat
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Compiling simple shaders using compile_shaders.bat"
+    VERBATIM
+)
+
+# Add custom target that depends on the custom command
+add_custom_target(CompileShaders ALL
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/shaders_compiled
+)
+
+# Ensure CoreVu depends on CompileShaders
+add_dependencies(CoreVu CompileShaders)
 
 target_include_directories(CoreVu PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
