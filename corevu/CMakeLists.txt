@@ -14,10 +14,12 @@ list(APPEND CORE_SOURCE
     src/corevu_model.cpp
     src/corevu_gameobject.cpp
     src/corevu_camera.cpp
+    src/corevu_buffer.cpp
     src/systems/render_system.cpp
     src/ext/keyboard_movement_controller.cpp
      )
 list(APPEND CORE_HEADER
+     include/corevu_frame_info.hpp
      include/corevu_device.hpp
      include/corevu_window.hpp
      include/corevu_pipeline.hpp
@@ -25,6 +27,7 @@ list(APPEND CORE_HEADER
      include/corevu_model.hpp
      include/corevu_gameobject.hpp
      include/corevu_camera.hpp
+     include/corevu_buffer.hpp
      include/systems/render_system.hpp
      include/systems/color_system.hpp
      include/systems/gravity_system.hpp

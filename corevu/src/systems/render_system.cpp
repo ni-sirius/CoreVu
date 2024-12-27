@@ -81,12 +81,12 @@ void RenderSystem::createPipeline(VkRenderPass render_pass)
 }
 
 void RenderSystem::renderGameObjects(
-    VkCommandBuffer command_buffer, std::vector<CoreVuGameObject>& game_objects,
-    const CoreVuCamera& camera)
+    FrameInfo& frame_info, std::vector<CoreVuGameObject>& game_objects)
 {
-  m_corevu_pipeline->Bind(command_buffer);
+  m_corevu_pipeline->Bind(frame_info.command_buffer);
 
-  const auto projection_view_mat = camera.getProjection() * camera.getView();
+  const auto projection_view_mat =
+      frame_info.camera.getProjection() * frame_info.camera.getView();
 
   for (auto& obj : game_objects)
   {
@@ -105,11 +105,11 @@ void RenderSystem::renderGameObjects(
                      model_matrix; // NOTE/TODO To be moved into shader code.
 
     vkCmdPushConstants(
-        command_buffer, m_pipeline_layout,
+        frame_info.command_buffer, m_pipeline_layout,
         VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT, 0,
         sizeof(SimplePushConstantData), &push);
 
-    obj.model->Bind(command_buffer);
-    obj.model->Draw(command_buffer);
+    obj.model->Bind(frame_info.command_buffer);
+    obj.model->Draw(frame_info.command_buffer);
   }
 }

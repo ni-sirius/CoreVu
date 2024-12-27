@@ -39,14 +39,6 @@ CoreVuModel::CoreVuModel(CoreVuDevice& device, const Builder& builder)
 
 CoreVuModel::~CoreVuModel()
 {
-  vkDestroyBuffer(m_corevu_device.device(), m_vertex_buffer, nullptr);
-  vkFreeMemory(m_corevu_device.device(), m_buffer_memory, nullptr);
-
-  if (m_had_index_buffer)
-  {
-    vkDestroyBuffer(m_corevu_device.device(), m_index_buffer, nullptr);
-    vkFreeMemory(m_corevu_device.device(), m_index_buffer_memory, nullptr);
-  }
 }
 
 void CoreVuModel::Draw(VkCommandBuffer command_buffer)
@@ -74,14 +66,17 @@ std::shared_ptr<CoreVuModel> corevu::CoreVuModel::CreateModelFromPath(
 
 void CoreVuModel::Bind(VkCommandBuffer command_buffer)
 {
-  VkBuffer buffers[] = {m_vertex_buffer};
-  VkDeviceSize offsets[] = {0};
-  vkCmdBindVertexBuffers(command_buffer, 0, 1, buffers, offsets);
+  if (m_vertex_buffer)
+  {
+    VkBuffer buffers[] = {m_vertex_buffer->getBuffer()};
+    VkDeviceSize offsets[] = {0};
+    vkCmdBindVertexBuffers(command_buffer, 0, 1, buffers, offsets);
+  }
 
-  if (m_had_index_buffer)
+  if (m_had_index_buffer && m_index_buffer)
   {
     vkCmdBindIndexBuffer(
-        command_buffer, m_index_buffer, 0,
+        command_buffer, m_index_buffer->getBuffer(), 0,
         VK_INDEX_TYPE_UINT32); // uint32_t can store up to 2^32 -1(4294967295)
                                // vertices
   }
@@ -93,60 +88,83 @@ void CoreVuModel::createVertexBuffers(const std::vector<Vertex>& vertices)
 
   m_vertex_count = static_cast<uint32_t>(vertices.size());
   assert(m_vertex_count >= 3 && "Vertex cound must be at least 3");
-
   VkDeviceSize buffer_size = sizeof(vertices[0]) * m_vertex_count;
 
-  /* Use more optimized local device mem on GPU side using
-  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT. The momeory is accessible only from gpu,
-  that's why we creating staging buffer and then copy it's contents to GPU Local
-  buffer.
-  It makes sense to use only host memory for less frequently updated data, like
-  textures, because it's slower to access from gpu.
+  /* Old, manual buffer creation, just for info purpose. The usage you can find by this commit. */
+  //   /* Use more optimized local device mem on GPU side using
+  //   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT. The momeory is accessible only from
+  //   gpu, that's why we creating staging buffer and then copy it's contents to
+  //   GPU Local buffer. It makes sense to use only host memory for less
+  //   frequently updated data, like textures, because it's slower to access
+  //   from gpu.
 
-  Staging buffers for now are optimal only for static data uploaded at the start
-  of the app.
+  //   Staging buffers for now are optimal only for static data uploaded at the
+  //   start of the app.
 
-  the m_corevu_device.copyBuffer() is not optimal though, because it uses single
-  time command, could be more efficint to use some memory barrier stuff here.*/
-  VkBuffer staging_buffer;
-  VkDeviceMemory staging_buffer_memory;
-  m_corevu_device.createBuffer(
-      buffer_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, /* make buffer as source
-                                                        for memory operation */
-      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT /* make buffer memory writable for cpu
-                                           */
-          | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT /* make cpu buffer mem in sync
-                                                    with gpu buffer mem */
-      ,
-      staging_buffer, staging_buffer_memory);
+  //   the m_corevu_device.copyBuffer() is not optimal though, because it uses
+  //   single time command, could be more efficint to use some memory barrier
+  //   stuff here.*/ VkBuffer staging_buffer; VkDeviceMemory
+  //   staging_buffer_memory; m_corevu_device.createBuffer(
+  //       buffer_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, /* make buffer as
+  //       source
+  //                                                         for memory
+  //                                                         operation */
+  //       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT /* make buffer memory writable
+  //       for cpu
+  //                                            */
+  //           | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT /* make cpu buffer mem in
+  //           sync
+  //                                                     with gpu buffer mem */
+  //       ,
+  //       staging_buffer, staging_buffer_memory);
 
-  void* data;
-  vkMapMemory(
-      m_corevu_device.device(), staging_buffer_memory, 0, buffer_size, 0,
-      &data); /* creates buffer (data) on cpu size, corresponding with gpu
-                 buffer */
-  memcpy(data, vertices.data(), static_cast<size_t>(buffer_size));
-  vkUnmapMemory(m_corevu_device.device(), staging_buffer_memory);
+  //   void* data;
+  //   vkMapMemory(
+  //       m_corevu_device.device(), staging_buffer_memory, 0, buffer_size, 0,
+  //       &data); /* creates buffer (data) on cpu size, corresponding with gpu
+  //                  buffer */
+  //   memcpy(data, vertices.data(), static_cast<size_t>(buffer_size));
+  //   vkUnmapMemory(m_corevu_device.device(), staging_buffer_memory);
 
-  m_corevu_device.createBuffer(
-      buffer_size,
-      VK_BUFFER_USAGE_VERTEX_BUFFER_BIT /* use buffer as vertex buf */ |
-          VK_BUFFER_USAGE_TRANSFER_DST_BIT, /* make buffer as destination
-for memory operation */
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT /* make buffer memory writable for gpu
-                                             with most efficent speed*/
-      ,
-      m_vertex_buffer, m_buffer_memory);
+  //   m_corevu_device.createBuffer(
+  //       buffer_size,
+  //       VK_BUFFER_USAGE_VERTEX_BUFFER_BIT /* use buffer as vertex buf */ |
+  //           VK_BUFFER_USAGE_TRANSFER_DST_BIT, /* make buffer as destination
+  // for memory operation */
+  //       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT /* make buffer memory writable
+  //       for gpu
+  //                                              with most efficent speed*/
+  //       ,
+  //       m_vertex_buffer, m_buffer_memory);
+
+  //   m_corevu_device.copyBuffer(
+  //       staging_buffer, m_vertex_buffer,
+  //       buffer_size); // to be optimized with memory barrier
+
+  //   vkDestroyBuffer(m_corevu_device.device(), staging_buffer, nullptr);
+  //   vkFreeMemory(m_corevu_device.device(), staging_buffer_memory, nullptr);
+
+  //   /* if there was no VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, we would need to
+  //   call
+  //    * vkFlushMappedMemoryRanges() in order to sync cpu and gpu buffers */
+
+  uint32_t vertex_size = sizeof(vertices[0]);
+  CoreVuBuffer staging_buffer{
+      m_corevu_device, vertex_size, m_vertex_count,
+      VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT};
+
+  staging_buffer.map();
+  staging_buffer.writeToBuffer((void*)vertices.data());
+
+  m_vertex_buffer = std::make_unique<CoreVuBuffer>(
+      m_corevu_device, vertex_size, m_vertex_count,
+      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
   m_corevu_device.copyBuffer(
-      staging_buffer, m_vertex_buffer,
-      buffer_size); // to be optimized with memory barrier
-
-  vkDestroyBuffer(m_corevu_device.device(), staging_buffer, nullptr);
-  vkFreeMemory(m_corevu_device.device(), staging_buffer_memory, nullptr);
-
-  /* if there was no VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, we would need to call
-   * vkFlushMappedMemoryRanges() in order to sync cpu and gpu buffers */
+      staging_buffer.getBuffer(), m_vertex_buffer->getBuffer(), buffer_size);
 }
 
 void CoreVuModel::createIndexBuffers(const std::vector<Index>& indices)
@@ -163,40 +181,23 @@ void CoreVuModel::createIndexBuffers(const std::vector<Index>& indices)
 
   VkDeviceSize buffer_size = sizeof(indices[0]) * m_index_count;
 
-  VkBuffer staging_buffer;
-  VkDeviceMemory staging_buffer_memory;
-  m_corevu_device.createBuffer(
-      buffer_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, /* make buffer as source
-                                                        for memory operation */
-      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT /* make buffer memory writable for cpu
-                                           */
-          | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT /* make cpu buffer mem in sync
-                                                    with gpu buffer mem */
-      ,
-      staging_buffer, staging_buffer_memory);
+  uint32_t index_size = sizeof(indices[0]);
+  CoreVuBuffer staging_buffer{
+      m_corevu_device, index_size, m_index_count,
+      VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT};
 
-  void* data;
-  vkMapMemory(
-      m_corevu_device.device(), staging_buffer_memory, 0, buffer_size, 0,
-      &data); /* creates buffer (data) on cpu size, corresponding with gpu
-                 buffer */
-  memcpy(data, indices.data(), static_cast<size_t>(buffer_size));
-  vkUnmapMemory(m_corevu_device.device(), staging_buffer_memory);
+  staging_buffer.map();
+  staging_buffer.writeToBuffer((void*)indices.data());
 
-  m_corevu_device.createBuffer(
-      buffer_size,
-      VK_BUFFER_USAGE_INDEX_BUFFER_BIT /* use buffer as indexes buf */ |
-          VK_BUFFER_USAGE_TRANSFER_DST_BIT, /* make buffer as destination
-for memory operation */
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT /* make buffer memory writable for gpu
-                                             with most efficent speed*/
-      ,
-      m_index_buffer, m_index_buffer_memory);
+  m_index_buffer = std::make_unique<CoreVuBuffer>(
+      m_corevu_device, index_size, m_index_count,
+      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-  m_corevu_device.copyBuffer(staging_buffer, m_index_buffer, buffer_size);
-
-  vkDestroyBuffer(m_corevu_device.device(), staging_buffer, nullptr);
-  vkFreeMemory(m_corevu_device.device(), staging_buffer_memory, nullptr);
+  m_corevu_device.copyBuffer(
+      staging_buffer.getBuffer(), m_index_buffer->getBuffer(), buffer_size);
 }
 
 std::vector<VkVertexInputBindingDescription>
@@ -216,7 +217,7 @@ CoreVuModel::Vertex::GetAttributeDescriptions()
   {
     VkVertexInputAttributeDescription attribute_description{};
     attribute_description.location = 0; // location in shader
-    attribute_description.binding = 0; // binding in shader
+    attribute_description.binding = 0;  // binding in shader
     attribute_description.format = VK_FORMAT_R32G32B32_SFLOAT; // 3 floats
     attribute_description.offset = offsetof(Vertex, position); // offset in
                                                                // struct

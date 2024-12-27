@@ -1,6 +1,7 @@
 #pragma once
 
 #include "corevu_device.hpp"
+#include "corevu_buffer.hpp"
 
 #define GLM_FORCE_RADIANS           // to be sure that no change depending on system
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE // instead of -1 to 1 ?
@@ -94,13 +95,12 @@ private:
    * Self-written solution -
    * http://kylehalladay.com/blog/tutorial/2017/12/13/Custom-Allocators-Vulkan.html
    */
-  VkBuffer m_vertex_buffer;
-  VkDeviceMemory m_buffer_memory;
+
+  std::unique_ptr<CoreVuBuffer> m_vertex_buffer{nullptr};
   uint32_t m_vertex_count;
 
   bool m_had_index_buffer;
-  VkBuffer m_index_buffer;
-  VkDeviceMemory m_index_buffer_memory;
+  std::unique_ptr<CoreVuBuffer> m_index_buffer{nullptr};
   uint32_t m_index_count;
 };
 } // namespace corevu

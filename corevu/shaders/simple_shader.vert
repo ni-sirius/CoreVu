@@ -9,6 +9,14 @@ layout(location = 3) in vec2 texCoord;
 
 layout(location = 0) out vec3 fragColor;
 
+// Input uniform data
+/** NOTE on vulkan speeds for 5000 blocks to render:
+Using push-constants 2.11ms
+Using 1 VkBuffer and keeping it mapped all the time 2.22ms
+Using 1 VkBuffer and mapping/unmapping per frame 2.25ms
+Using multiple VkBuffers, and keeping them all mapped 2.26ms
+Using multiple VkBuffers, and mapping/unmapping every frame 2.83ms
+*/
 layout(push_constant) uniform Push
 {
   mat4 transform;    // projection * view * model
@@ -16,6 +24,9 @@ layout(push_constant) uniform Push
 }
 push;
 
+// Vulkan: uniform buffer has min 16KB(mobile divices) limit and max 64KB limit.
+
+// Code and constants
 const vec3 lightDir =
     normalize(vec3(1.0, -3.0, -1.0)); // hardcoded light direction test
 const float ambientValue = 0.1;       // hardcoded ambient value test

@@ -5,6 +5,7 @@
 #include "corevu_gameobject.hpp"
 #include "corevu_window.hpp"
 #include "corevu_pipeline.hpp"
+#include "corevu_frame_info.hpp"
 
 // std
 #include <cstdlib>
@@ -24,8 +25,7 @@ public:
   RenderSystem& operator=(const RenderSystem&) = delete;
 
   void renderGameObjects(
-      VkCommandBuffer command_buffer,
-      std::vector<CoreVuGameObject>& game_objects, const CoreVuCamera& camera);
+      FrameInfo& frame_info, std::vector<CoreVuGameObject>& game_objects);
 
 private:
   void createPipelineLayout();

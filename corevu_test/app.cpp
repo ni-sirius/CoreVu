@@ -2,6 +2,7 @@
 #include <corevu/include/ext/keyboard_movement_controller.hpp>
 #include <corevu/include/systems/render_system.hpp>
 #include <corevu/include/corevu_camera.hpp>
+#include <corevu/include/corevu_buffer.hpp>
 #include <Tracy.hpp>
 
 // temp libs
@@ -20,6 +21,12 @@ using namespace corevutest;
 const int FPS = 60;
 const std::chrono::milliseconds FRAME_DURATION(1000 / FPS);
 
+struct GlobalUbo
+{
+  glm::mat4 projection_view_matrix{1.f};
+  glm::vec3 light_direction = glm::normalize(glm::vec3{1.f, -3.f, -1.f});
+};
+
 SampleApp::SampleApp()
 {
   loadGameObjects();
@@ -31,6 +38,21 @@ SampleApp::~SampleApp()
 
 void SampleApp::run()
 {
+  // setting up uniforms for the app
+  corevu::CoreVuBuffer global_ubo{
+      m_corevu_device,
+      sizeof(GlobalUbo),
+      corevu::CoreVuSwapChain::MAX_FRAMES_IN_FLIGHT,
+      VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT /* use this and not COHERENT_BIT not
+                                             to mess with async
+                                             and flush buffer only when we know
+                                             that it's not in use. */
+      ,
+      m_corevu_device.properties.limits
+          .minUniformBufferOffsetAlignment /* got from vulkan props*/};
+  global_ubo.map();
+
   corevu::RenderSystem render_system{
       m_corevu_device, m_renderer.GetSwapchainRenderpass()};
   corevu::CoreVuCamera camera{};
@@ -73,8 +95,18 @@ void SampleApp::run()
 
     if (auto command_buffer = m_renderer.BeginFrame())
     {
+      const int frame_index = m_renderer.GetFrameIndex();
+      corevu::FrameInfo frame_info{frame_index, dt_sec, command_buffer, camera};
+
+      // update
+      GlobalUbo ubo{};
+      ubo.projection_view_matrix = camera.getProjection() * camera.getView();
+      global_ubo.writeToIndex(&ubo, frame_index);
+      global_ubo.flushIndex(frame_index);
+
+      // render
       m_renderer.BeginSwapChainRenderPass(command_buffer);
-      render_system.renderGameObjects(command_buffer, m_game_objects, camera);
+      render_system.renderGameObjects(frame_info, m_game_objects);
       m_renderer.EndSwapChainRenderPass(command_buffer);
       m_renderer.EndFrame();
     }
@@ -152,8 +184,9 @@ void SampleApp::loadGameObjects()
 {
   // 3d solution
   auto model = corevu::CoreVuModel::CreateModelFromPath(
-      m_corevu_device, "C:\\workspace\\CoreVu\\assets\\models\\smooth_vase.obj");
-   //createCubeModel(m_corevu_device, {.0f, .0f, .0f});
+      m_corevu_device,
+      "C:\\workspace\\CoreVu\\assets\\models\\smooth_vase.obj");
+  // createCubeModel(m_corevu_device, {.0f, .0f, .0f});
   auto object = corevu::CoreVuGameObject::Create();
   object.model = model;
   object.transform.translation = {
