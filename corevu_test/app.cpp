@@ -3,6 +3,8 @@
 #include <corevu/include/systems/render_system.hpp>
 #include <corevu/include/corevu_camera.hpp>
 #include <corevu/include/corevu_buffer.hpp>
+
+// libs
 #include <Tracy.hpp>
 
 // temp libs
@@ -23,12 +25,25 @@ const std::chrono::milliseconds FRAME_DURATION(1000 / FPS);
 
 struct GlobalUbo
 {
-  glm::mat4 projection_view_matrix{1.f};
+  /* NOTE it has the same alignment 16 bytes requirement as PushConstants */
+  glm::mat4 projection_view_matrix{1.f}; // already 16 bytes aligned
   glm::vec3 light_direction = glm::normalize(glm::vec3{1.f, -3.f, -1.f});
+  // alignas(16) for any next member ...
 };
 
 SampleApp::SampleApp()
 {
+  m_global_descriptor_pool =
+      corevu::CoreVuDescriptorPool::Builder(m_corevu_device)
+          .setMaxSets(corevu::CoreVuSwapChain::MAX_FRAMES_IN_FLIGHT)
+          .addPoolSize(
+              VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+              corevu::CoreVuSwapChain::MAX_FRAMES_IN_FLIGHT)
+          .build(); // why both amount of pools and amount of desctiptors per
+                    // set is MAX_FRAMES_IN_FLIGHT? Because having 2 sets
+                    // doesn't mean that there will be 1 descriptor in each, you
+                    // need to specify overall count of descriptors in the pool.
+
   loadGameObjects();
 }
 
@@ -50,8 +65,26 @@ void SampleApp::run()
     uniform_buffer->map();
   }
 
+  auto global_descriptor_set_layout =
+      corevu::CoreVuDescriptorSetLayout::Builder(m_corevu_device)
+          .addBinding(
+              0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+          .build();
+
+  std::vector<VkDescriptorSet> global_descriptor_sets{
+      corevu::CoreVuSwapChain::MAX_FRAMES_IN_FLIGHT};
+  for (int i = 0; i < corevu::CoreVuSwapChain::MAX_FRAMES_IN_FLIGHT; i++)
+  {
+    auto buffer_info = uniform_buffers[i]->descriptorInfo();
+    corevu::CoreVuDescriptorWriter(
+        *global_descriptor_set_layout, *m_global_descriptor_pool)
+        .writeBuffer(0, &buffer_info)
+        .build(global_descriptor_sets[i]);
+  }
+
   corevu::RenderSystem render_system{
-      m_corevu_device, m_renderer.GetSwapchainRenderpass()};
+      m_corevu_device, m_renderer.GetSwapchainRenderpass(),
+      global_descriptor_set_layout->getDescriptorSetLayout()};
   corevu::CoreVuCamera camera{};
   // camera.setViewDirection(glm::vec3(0.f), glm::vec3(0.5f, 0.f, 1.f));
   // camera.setViewTarget(glm::vec3(1.f, -2.f, 2.f), glm::vec3(0.f, 0.f, 2.5f));
@@ -93,7 +126,9 @@ void SampleApp::run()
     if (auto command_buffer = m_renderer.BeginFrame())
     {
       const int frame_index = m_renderer.GetFrameIndex();
-      corevu::FrameInfo frame_info{frame_index, dt_sec, command_buffer, camera};
+      corevu::FrameInfo frame_info{
+          frame_index, dt_sec, command_buffer, camera,
+          global_descriptor_sets[frame_index]};
 
       // update
       GlobalUbo ubo{};
@@ -189,7 +224,7 @@ void SampleApp::loadGameObjects()
   object.transform.translation = {
       .0f, .0f, 2.5f}; // z 2.5 for perspective, 0.5f for othographic (look in
                        // +z direction)
-  object.transform.scale = {2.5f, .5f, 2.5f};
+  object.transform.scale = {2.5f, 1.5f, 2.5f};
   m_game_objects.push_back(std::move(object));
 
   // base solution

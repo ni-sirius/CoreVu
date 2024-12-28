@@ -13,6 +13,7 @@ namespace corevu
     float frame_time;
     VkCommandBuffer command_buffer;
     CoreVuCamera& camera;
+    VkDescriptorSet global_descriptor_set;
   };
   
 }

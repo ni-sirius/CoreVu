@@ -16,10 +16,17 @@
 namespace corevu
 {
 
+/* The whole system is TEMPORARY and used only for diplaying HARDCODED set of
+   graphic primitives and sets from app.hpp/cpp. It's not generic at all and
+   must be used CAREFULLY!. Won't be used in the final version.
+ */
+
 class RenderSystem
 {
 public:
-  RenderSystem(CoreVuDevice& device, VkRenderPass render_pass);
+  RenderSystem(
+      CoreVuDevice& device, VkRenderPass render_pass,
+      VkDescriptorSetLayout global_descriptor_set_layout);
   ~RenderSystem();
   RenderSystem(const RenderSystem&) = delete;
   RenderSystem& operator=(const RenderSystem&) = delete;
@@ -28,7 +35,7 @@ public:
       FrameInfo& frame_info, std::vector<CoreVuGameObject>& game_objects);
 
 private:
-  void createPipelineLayout();
+  void createPipelineLayout(VkDescriptorSetLayout global_descriptor_set_layout);
   void createPipeline(VkRenderPass render_pass);
 
 private:

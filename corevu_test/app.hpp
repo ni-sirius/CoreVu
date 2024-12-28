@@ -3,6 +3,7 @@
 #include <corevu/include/corevu_device.hpp>
 #include <corevu/include/corevu_gameobject.hpp>
 #include <corevu/include/corevu_window.hpp>
+#include <corevu/include/corevu_descriptors.hpp>
 #include "renderer.hpp"
 
 // std
@@ -35,6 +36,7 @@ private:
   corevu::CoreVuDevice m_corevu_device{m_corevu_window};
   SampleRenderer m_renderer{m_corevu_window, m_corevu_device};
 
+  std::unique_ptr<corevu::CoreVuDescriptorPool> m_global_descriptor_pool{};
   std::vector<corevu::CoreVuGameObject>
       m_game_objects; // or // std::unique_ptr<corevu::CoreVuModel>
                       // m_corevu_model;

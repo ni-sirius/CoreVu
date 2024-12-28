@@ -17,18 +17,22 @@ Using 1 VkBuffer and mapping/unmapping per frame 2.25ms
 Using multiple VkBuffers, and keeping them all mapped 2.26ms
 Using multiple VkBuffers, and mapping/unmapping every frame 2.83ms
 */
-layout(push_constant) uniform Push
+layout(push_constant) uniform Push // Vulkan: limited to 128 bytes / two mat4
 {
-  mat4 transform;    // projection * view * model
+  mat4 modelMatrix;  // model
   mat4 normalMatrix; // transpose(inverse(mat3(model)))
 }
 push;
 
 // Vulkan: uniform buffer has min 16KB(mobile divices) limit and max 64KB limit.
+layout(set = 0, binding = 0) uniform GlobalUniformBufferObject // UBO
+{
+  mat4 projectionViewMatrix; // view * projection
+  vec3 directionToLight;     // for single direction light
+}
+ubo;
 
 // Code and constants
-const vec3 lightDir =
-    normalize(vec3(1.0, -3.0, -1.0)); // hardcoded light direction test
 const float ambientValue = 0.1;       // hardcoded ambient value test
 
 void main()
@@ -38,7 +42,7 @@ void main()
   // replaced with vec4 transform from push coordinates
 
   gl_Position =
-      push.transform *
+      ubo.projectionViewMatrix * push.modelMatrix *
       vec4(position, 1.0); // note w=1.0 for position, 0.0 for direction
 
   // Normals scaling handling
@@ -56,7 +60,7 @@ void main()
   // approach 2.
   vec3 normalsWorld = normalize(mat3(push.normalMatrix) * normal);
 
-  float intensity = ambientValue + max(dot(normalsWorld, lightDir),
+  float intensity = ambientValue + max(dot(normalsWorld, ubo.directionToLight),
                                        0.0); // temporary light intensity
 
   fragColor = intensity * color;

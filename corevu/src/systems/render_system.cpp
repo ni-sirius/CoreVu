@@ -14,7 +14,7 @@ struct SimplePushConstantData // NOTE : ALL push data constants together are
                               // limited to 128 bytes space! But it's quite
                               // handy for storing transformation matrices.
 {
-  glm::mat4 transform{1.f};
+  glm::mat4 model_matrix{1.f};
   glm::mat4 normal_matrix{1.f};
 
   /* NOTE an 2d implementation with important note
@@ -27,10 +27,12 @@ struct SimplePushConstantData // NOTE : ALL push data constants together are
              */
 };
 
-RenderSystem::RenderSystem(CoreVuDevice& device, VkRenderPass render_pass)
+RenderSystem::RenderSystem(
+    CoreVuDevice& device, VkRenderPass render_pass,
+    VkDescriptorSetLayout global_descriptor_set_layout)
   : m_corevu_device{device}
 {
-  createPipelineLayout();
+  createPipelineLayout(global_descriptor_set_layout);
   createPipeline(render_pass);
 }
 
@@ -39,7 +41,8 @@ RenderSystem::~RenderSystem()
   vkDestroyPipelineLayout(m_corevu_device.device(), m_pipeline_layout, nullptr);
 }
 
-void RenderSystem::createPipelineLayout()
+void RenderSystem::createPipelineLayout(
+    VkDescriptorSetLayout global_descriptor_set_layout)
 {
   VkPushConstantRange push_constant_range{};
   push_constant_range.stageFlags =
@@ -48,14 +51,20 @@ void RenderSystem::createPipelineLayout()
       0; // if separate ranges for different stages are used.
   push_constant_range.size = sizeof(SimplePushConstantData);
 
+  std::vector<VkDescriptorSetLayout> descriptor_set_layouts = {
+      global_descriptor_set_layout}; // temp in order to prepare for the
+                                     // multiple layouts
+
   VkPipelineLayoutCreateInfo pipeline_layout_info{};
   pipeline_layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-  pipeline_layout_info.setLayoutCount = 0;
-  pipeline_layout_info.pSetLayouts = nullptr;
+  pipeline_layout_info.setLayoutCount =
+      static_cast<uint32_t>(descriptor_set_layouts.size());
+  pipeline_layout_info.pSetLayouts = descriptor_set_layouts.data();
   pipeline_layout_info.pushConstantRangeCount =
       1; // 1 for one constant range for all stages
   pipeline_layout_info.pPushConstantRanges =
-      &push_constant_range; // TODO what if 2 ranges?
+      &push_constant_range; // TODO what if 2 ranges? - do the same as for
+                            // descriptor set layouts
   if (vkCreatePipelineLayout(
           m_corevu_device.device(), &pipeline_layout_info, nullptr,
           &m_pipeline_layout) != VK_SUCCESS)
@@ -87,8 +96,17 @@ void RenderSystem::renderGameObjects(
    * WARN: not to rebind them often because it's expensive. */
   m_corevu_pipeline->Bind(frame_info.command_buffer);
 
-  const auto projection_view_mat =
-      frame_info.camera.getProjection() * frame_info.camera.getView();
+  /* NOTE:
+    Descriptor sets are bound in consequent order, which means that if we want
+    to rebind set 0 we wouldn need to rebind all the sets after it. That's why
+    it's important to have the most commoly used set at the beginning of the
+    list. And others in the order of their usage.
+   */
+  vkCmdBindDescriptorSets(
+      frame_info.command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+      m_pipeline_layout, 0, 1, &frame_info.global_descriptor_set, 0,
+      nullptr); // Bind the global descriptor set once to be used for all
+                // objects.
 
   for (auto& obj : game_objects)
   {
@@ -101,10 +119,8 @@ void RenderSystem::renderGameObjects(
     //     glm::mod(obj.transform.rotation.z + 0.0001f, glm::two_pi<float>());
 
     SimplePushConstantData push{};
-    const auto model_matrix = obj.transform.ToMat4();
     push.normal_matrix = obj.transform.GetNormalMatrix();
-    push.transform = projection_view_mat *
-                     model_matrix; // NOTE/TODO To be moved into shader code.
+    push.model_matrix = obj.transform.ToMat4();
 
     vkCmdPushConstants(
         frame_info.command_buffer, m_pipeline_layout,
