@@ -15,6 +15,7 @@
 #include <array>
 #include <chrono>
 #include <thread>
+#include <numeric>
 
 using namespace corevutest;
 
@@ -39,6 +40,12 @@ SampleApp::~SampleApp()
 void SampleApp::run()
 {
   // setting up uniforms for the app
+  auto min_offset_alignmetnt = std::lcm(
+      m_corevu_device.properties.limits.minUniformBufferOffsetAlignment,
+      m_corevu_device.properties.limits
+          .nonCoherentAtomSize); // find lowest common multiple /* got from
+                                 // vulkan props*/
+
   corevu::CoreVuBuffer global_ubo{
       m_corevu_device,
       sizeof(GlobalUbo),
@@ -49,8 +56,7 @@ void SampleApp::run()
                                              and flush buffer only when we know
                                              that it's not in use. */
       ,
-      m_corevu_device.properties.limits
-          .minUniformBufferOffsetAlignment /* got from vulkan props*/};
+      min_offset_alignmetnt};
   global_ubo.map();
 
   corevu::RenderSystem render_system{
