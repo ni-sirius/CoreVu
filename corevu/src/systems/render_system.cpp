@@ -83,6 +83,8 @@ void RenderSystem::createPipeline(VkRenderPass render_pass)
 void RenderSystem::renderGameObjects(
     FrameInfo& frame_info, std::vector<CoreVuGameObject>& game_objects)
 {
+  /* NOTE: for different shaders we would require to have different pipeleines,
+   * WARN: not to rebind them often because it's expensive. */
   m_corevu_pipeline->Bind(frame_info.command_buffer);
 
   const auto projection_view_mat =

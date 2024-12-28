@@ -15,7 +15,6 @@
 #include <array>
 #include <chrono>
 #include <thread>
-#include <numeric>
 
 using namespace corevutest;
 
@@ -40,24 +39,16 @@ SampleApp::~SampleApp()
 void SampleApp::run()
 {
   // setting up uniforms for the app
-  auto min_offset_alignmetnt = std::lcm(
-      m_corevu_device.properties.limits.minUniformBufferOffsetAlignment,
-      m_corevu_device.properties.limits
-          .nonCoherentAtomSize); // find lowest common multiple /* got from
-                                 // vulkan props*/
-
-  corevu::CoreVuBuffer global_ubo{
-      m_corevu_device,
-      sizeof(GlobalUbo),
-      corevu::CoreVuSwapChain::MAX_FRAMES_IN_FLIGHT,
-      VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT /* use this and not COHERENT_BIT not
-                                             to mess with async
-                                             and flush buffer only when we know
-                                             that it's not in use. */
-      ,
-      min_offset_alignmetnt};
-  global_ubo.map();
+  std::vector<std::unique_ptr<corevu::CoreVuBuffer>> uniform_buffers(
+      corevu::CoreVuSwapChain::MAX_FRAMES_IN_FLIGHT);
+  for (auto& uniform_buffer : uniform_buffers)
+  {
+    uniform_buffer = std::make_unique<corevu::CoreVuBuffer>(
+        m_corevu_device, sizeof(GlobalUbo), 1,
+        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT 
+        /* | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT could be used but we will go for using flush()*/);
+    uniform_buffer->map();
+  }
 
   corevu::RenderSystem render_system{
       m_corevu_device, m_renderer.GetSwapchainRenderpass()};
@@ -107,8 +98,8 @@ void SampleApp::run()
       // update
       GlobalUbo ubo{};
       ubo.projection_view_matrix = camera.getProjection() * camera.getView();
-      global_ubo.writeToIndex(&ubo, frame_index);
-      global_ubo.flushIndex(frame_index);
+      uniform_buffers[frame_index]->writeToBuffer(&ubo);
+      uniform_buffers[frame_index]->flush();
 
       // render
       m_renderer.BeginSwapChainRenderPass(command_buffer);
