@@ -27,8 +27,10 @@ struct GlobalUbo
 {
   /* NOTE it has the same alignment 16 bytes requirement as PushConstants */
   glm::mat4 projection_view_matrix{1.f}; // already 16 bytes aligned
-  glm::vec3 light_direction = glm::normalize(glm::vec3{1.f, -3.f, -1.f});
-  // alignas(16) for any next member ...
+  glm::vec4 ambient_light_color{1.f, 1.f, 1.f, .02f};
+  // glm::vec3 light_direction = glm::normalize(glm::vec3{1.f, -3.f, -1.f});
+  glm::vec3 light_position{-1.f};
+  alignas(16) glm::vec4 light_color{1.f, 1.f, 1.f, 1.f};
 };
 
 SampleApp::SampleApp()
@@ -90,6 +92,7 @@ void SampleApp::run()
   // camera.setViewTarget(glm::vec3(1.f, -2.f, 2.f), glm::vec3(0.f, 0.f, 2.5f));
 
   auto viewer_object = corevu::CoreVuGameObject::Create();
+  viewer_object.transform.translation = {0.f, 0.f, -2.5f};
   corevu::KeyboardMovementController keyboard_camera_controller{};
 
   auto frame_start = std::chrono::steady_clock::now();
@@ -121,7 +124,7 @@ void SampleApp::run()
     // camera.setOrthographicProjection(-aspect_ratio, aspect_ratio, -1, 1, -1,
     // 1); //bottom and top shall be -1 1
     camera.setPerspectiveProjection(
-        glm::radians(50.f), aspect_ratio, 0.1f, 10.f);
+        glm::radians(50.f), aspect_ratio, 0.1f, 100.f);
 
     if (auto command_buffer = m_renderer.BeginFrame())
     {
@@ -215,17 +218,64 @@ std::shared_ptr<corevu::CoreVuModel> createCubeModel(
 void SampleApp::loadGameObjects()
 {
   // 3d solution
-  auto model = corevu::CoreVuModel::CreateModelFromPath(
-      m_corevu_device,
-      "C:\\workspace\\CoreVu\\assets\\models\\smooth_vase.obj");
-  // createCubeModel(m_corevu_device, {.0f, .0f, .0f});
-  auto object = corevu::CoreVuGameObject::Create();
-  object.model = model;
-  object.transform.translation = {
-      .0f, .0f, 2.5f}; // z 2.5 for perspective, 0.5f for othographic (look in
+
+  // First object
+  {
+    auto model = corevu::CoreVuModel::CreateModelFromPath(
+        m_corevu_device,
+        "C:\\workspace\\CoreVu\\assets\\models\\smooth_vase.obj");
+    // createCubeModel(m_corevu_device, {.0f, .0f, .0f});
+    auto object = corevu::CoreVuGameObject::Create();
+    object.model = model;
+    object.transform.translation = {
+        1.0f, .5f, 0}; // z 2.5 for perspective, 0.5f for othographic (look in
                        // +z direction)
-  object.transform.scale = {2.5f, 1.5f, 2.5f};
-  m_game_objects.push_back(std::move(object));
+    object.transform.scale = {2.5f, 1.5f, 2.5f};
+    m_game_objects.push_back(std::move(object));
+  }
+
+  // Second object
+  {
+    auto model = corevu::CoreVuModel::CreateModelFromPath(
+        m_corevu_device,
+        "C:\\workspace\\CoreVu\\assets\\models\\flat_vase.obj");
+    // createCubeModel(m_corevu_device, {.0f, .0f, .0f});
+    auto object = corevu::CoreVuGameObject::Create();
+    object.model = model;
+    object.transform.translation = {
+        -1.0f, .5f, 0}; // z 2.5 for perspective, 0.5f for othographic (look in
+                        // +z direction)
+    object.transform.scale = {2.5f, 1.5f, 2.5f};
+    m_game_objects.push_back(std::move(object));
+  }
+
+  // Third object
+  {
+    auto model = corevu::CoreVuModel::CreateModelFromPath(
+        m_corevu_device,
+        "C:\\workspace\\CoreVu\\assets\\models\\colored_cube.obj");
+    // createCubeModel(m_corevu_device, {.0f, .0f, .0f});
+    auto object = corevu::CoreVuGameObject::Create();
+    object.model = model;
+    object.transform.translation = {
+        0.0f, .0f, 0}; // z 2.5 for perspective, 0.5f for othographic (look in
+                       // +z direction)
+    object.transform.scale = {.25f, .25f, .25f};
+    object.transform.rotation = {
+        .13f * glm::two_pi<float>(), .13f * glm::two_pi<float>(), 0.f};
+    m_game_objects.push_back(std::move(object));
+  }
+
+  // Floor object
+  {
+    auto model = corevu::CoreVuModel::CreateModelFromPath(
+        m_corevu_device, "C:\\workspace\\CoreVu\\assets\\models\\quad.obj");
+    auto object = corevu::CoreVuGameObject::Create();
+    object.model = model;
+    object.transform.translation = {0.0f, .5f, 0};
+    object.transform.scale = {3.f, 1.f, 3.f};
+    m_game_objects.push_back(std::move(object));
+  }
 
   // base solution
   // {

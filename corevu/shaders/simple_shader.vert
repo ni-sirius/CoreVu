@@ -28,15 +28,20 @@ push;
 layout(set = 0, binding = 0) uniform GlobalUniformBufferObject // UBO
 {
   mat4 projectionViewMatrix; // view * projection
-  vec3 directionToLight;     // for single direction light
+  vec4 ambientLightColor;    // w as ambient intensity, xyz as color
+  // vec3 directionToLight;     // for single direction light
+  vec3 lightPosition;
+  vec4 lightColor; // w as light intensity, xyz as color
 }
 ubo;
 
 // Code and constants
-const float ambientValue = 0.1;       // hardcoded ambient value test
+const float ambientValue = 0.1; // hardcoded ambient value test
 
 void main()
 {
+  vec4 positionWorld = push.modelMatrix * vec4(position, 1.0);
+
   // gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0); // hardcoded test
   // gl_Position = vec4(push.transform * position + push.offset, 0.0, 1.0); //
   // replaced with vec4 transform from push coordinates
@@ -60,8 +65,21 @@ void main()
   // approach 2.
   vec3 normalsWorld = normalize(mat3(push.normalMatrix) * normal);
 
-  float intensity = ambientValue + max(dot(normalsWorld, ubo.directionToLight),
-                                       0.0); // temporary light intensity
+  vec3 directionToLight = ubo.lightPosition - positionWorld.xyz;
+  float attenuation =
+      1.0 / dot(directionToLight,
+                directionToLight); // dot with itself is the distance squared
 
-  fragColor = intensity * color;
+  vec3 lightColor = ubo.lightColor.xyz * ubo.lightColor.w * attenuation;
+  vec3 ambientLightColor = ubo.ambientLightColor.xyz * ubo.ambientLightColor.w;
+  vec3 diffuseLight =
+      lightColor * max(dot(normalsWorld, normalize(directionToLight)), 0.0);
+
+  // temporary comented out for direction lights
+  // float intensity = ambientValue + max(dot(normalsWorld,
+  // ubo.directionToLight),
+  //                                     0.0); // temporary light intensity
+  // fragColor = intensity * color;
+
+  fragColor = color * (ambientLightColor + diffuseLight);
 }
