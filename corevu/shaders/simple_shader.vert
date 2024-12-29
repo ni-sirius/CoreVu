@@ -8,6 +8,8 @@ layout(location = 2) in vec3 normal;
 layout(location = 3) in vec2 texCoord;
 
 layout(location = 0) out vec3 fragColor;
+layout(location = 1) out vec3 fragPosWorld;
+layout(location = 2) out vec3 fragNormalWorld;
 
 // Input uniform data
 /** NOTE on vulkan speeds for 5000 blocks to render:
@@ -35,9 +37,6 @@ layout(set = 0, binding = 0) uniform GlobalUniformBufferObject // UBO
 }
 ubo;
 
-// Code and constants
-const float ambientValue = 0.1; // hardcoded ambient value test
-
 void main()
 {
   vec4 positionWorld = push.modelMatrix * vec4(position, 1.0);
@@ -63,23 +62,8 @@ void main()
   // static an won't be scaled non-uniformly. If object is scaled on creation
   // and not scaled - use approach 3. If object is scaled in runtime - use
   // approach 2.
-  vec3 normalsWorld = normalize(mat3(push.normalMatrix) * normal);
-
-  vec3 directionToLight = ubo.lightPosition - positionWorld.xyz;
-  float attenuation =
-      1.0 / dot(directionToLight,
-                directionToLight); // dot with itself is the distance squared
-
-  vec3 lightColor = ubo.lightColor.xyz * ubo.lightColor.w * attenuation;
-  vec3 ambientLightColor = ubo.ambientLightColor.xyz * ubo.ambientLightColor.w;
-  vec3 diffuseLight =
-      lightColor * max(dot(normalsWorld, normalize(directionToLight)), 0.0);
-
-  // temporary comented out for direction lights
-  // float intensity = ambientValue + max(dot(normalsWorld,
-  // ubo.directionToLight),
-  //                                     0.0); // temporary light intensity
-  // fragColor = intensity * color;
-
-  fragColor = color * (ambientLightColor + diffuseLight);
+ // vec3 normalsWorld = normalize(mat3(push.normalMatrix) * normal);
+  fragNormalWorld = normalize(mat3(push.normalMatrix) * normal);
+  fragPosWorld = positionWorld.xyz;
+  fragColor = color;
 }

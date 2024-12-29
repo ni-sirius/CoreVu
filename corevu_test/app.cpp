@@ -70,7 +70,9 @@ void SampleApp::run()
   auto global_descriptor_set_layout =
       corevu::CoreVuDescriptorSetLayout::Builder(m_corevu_device)
           .addBinding(
-              0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+              0,
+              VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS 
+              /* alternative VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT */)
           .build();
 
   std::vector<VkDescriptorSet> global_descriptor_sets{
