@@ -37,8 +37,8 @@ private:
   SampleRenderer m_renderer{m_corevu_window, m_corevu_device};
 
   std::unique_ptr<corevu::CoreVuDescriptorPool> m_global_descriptor_pool{};
-  std::vector<corevu::CoreVuGameObject>
-      m_game_objects; // or // std::unique_ptr<corevu::CoreVuModel>
-                      // m_corevu_model;
+
+  // also could draw the model itself std::unique_ptr<corevu::CoreVuModel>
+  corevu::CoreVuGameObject::ObjectContainer m_game_objects;
 };
 } // namespace corevutest

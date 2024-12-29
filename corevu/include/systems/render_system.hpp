@@ -31,8 +31,7 @@ public:
   RenderSystem(const RenderSystem&) = delete;
   RenderSystem& operator=(const RenderSystem&) = delete;
 
-  void renderGameObjects(
-      FrameInfo& frame_info, std::vector<CoreVuGameObject>& game_objects);
+  void renderGameObjects(FrameInfo& frame_info);
 
 private:
   void createPipelineLayout(VkDescriptorSetLayout global_descriptor_set_layout);

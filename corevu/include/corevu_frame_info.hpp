@@ -1,6 +1,7 @@
 #pragma once
 
 #include <corevu_camera.hpp>
+#include <corevu_gameobject.hpp>
 
 // lib
 #include <vulkan/vulkan.h>
@@ -14,6 +15,7 @@ namespace corevu
     VkCommandBuffer command_buffer;
     CoreVuCamera& camera;
     VkDescriptorSet global_descriptor_set;
+    CoreVuGameObject::ObjectContainer& game_objects;
   };
   
 }

@@ -132,8 +132,12 @@ void SampleApp::run()
     {
       const int frame_index = m_renderer.GetFrameIndex();
       corevu::FrameInfo frame_info{
-          frame_index, dt_sec, command_buffer, camera,
-          global_descriptor_sets[frame_index]};
+          frame_index,
+          dt_sec,
+          command_buffer,
+          camera,
+          global_descriptor_sets[frame_index],
+          m_game_objects};
 
       // update
       GlobalUbo ubo{};
@@ -143,7 +147,7 @@ void SampleApp::run()
 
       // render
       m_renderer.BeginSwapChainRenderPass(command_buffer);
-      render_system.renderGameObjects(frame_info, m_game_objects);
+      render_system.renderGameObjects(frame_info);
       m_renderer.EndSwapChainRenderPass(command_buffer);
       m_renderer.EndFrame();
     }
@@ -233,7 +237,9 @@ void SampleApp::loadGameObjects()
         1.0f, .5f, 0}; // z 2.5 for perspective, 0.5f for othographic (look in
                        // +z direction)
     object.transform.scale = {2.5f, 1.5f, 2.5f};
-    m_game_objects.push_back(std::move(object));
+
+    const auto obj_id = object.GetUid();
+    m_game_objects.emplace(obj_id, std::move(object));
   }
 
   // Second object
@@ -248,7 +254,9 @@ void SampleApp::loadGameObjects()
         -1.0f, .5f, 0}; // z 2.5 for perspective, 0.5f for othographic (look in
                         // +z direction)
     object.transform.scale = {2.5f, 1.5f, 2.5f};
-    m_game_objects.push_back(std::move(object));
+
+    const auto obj_id = object.GetUid();
+    m_game_objects.emplace(obj_id, std::move(object));
   }
 
   // Third object
@@ -265,7 +273,9 @@ void SampleApp::loadGameObjects()
     object.transform.scale = {.25f, .25f, .25f};
     object.transform.rotation = {
         .13f * glm::two_pi<float>(), .13f * glm::two_pi<float>(), 0.f};
-    m_game_objects.push_back(std::move(object));
+
+    const auto obj_id = object.GetUid();
+    m_game_objects.emplace(obj_id, std::move(object));
   }
 
   // Floor object
@@ -276,7 +286,9 @@ void SampleApp::loadGameObjects()
     object.model = model;
     object.transform.translation = {0.0f, .5f, 0};
     object.transform.scale = {3.f, 1.f, 3.f};
-    m_game_objects.push_back(std::move(object));
+
+    const auto obj_id = object.GetUid();
+    m_game_objects.emplace(obj_id, std::move(object));
   }
 
   // base solution

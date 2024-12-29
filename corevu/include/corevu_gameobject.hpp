@@ -2,9 +2,12 @@
 
 #include "corevu_model.hpp"
 
+// libs
 #include <glm/gtc/matrix_transform.hpp>
 
+// std
 #include <memory>
+#include <unordered_map>
 
 namespace corevu
 {
@@ -115,6 +118,7 @@ class CoreVuGameObject
 {
 public:
   using CoreVuUid = unsigned int;
+  using ObjectContainer = std::unordered_map<CoreVuUid, CoreVuGameObject>;
 
   static CoreVuGameObject Create()
   {

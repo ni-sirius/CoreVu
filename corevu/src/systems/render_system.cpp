@@ -89,8 +89,7 @@ void RenderSystem::createPipeline(VkRenderPass render_pass)
       "C:/workspace/CoreVu/corevu/shaders/simple_shader.frag.spv");
 }
 
-void RenderSystem::renderGameObjects(
-    FrameInfo& frame_info, std::vector<CoreVuGameObject>& game_objects)
+void RenderSystem::renderGameObjects(FrameInfo& frame_info)
 {
   /* NOTE: for different shaders we would require to have different pipeleines,
    * WARN: not to rebind them often because it's expensive. */
@@ -108,8 +107,15 @@ void RenderSystem::renderGameObjects(
       nullptr); // Bind the global descriptor set once to be used for all
                 // objects.
 
-  for (auto& obj : game_objects)
+  for (auto& obj_elem : frame_info.game_objects)
   {
+    auto& obj = obj_elem.second;
+
+    if (!obj.model)
+    {
+      continue;
+    }
+
     // TEST ROTATION FOR ALL GAME OBJECTS(TODO remove)
     // obj.transform.rotation.y =
     //     glm::mod(obj.transform.rotation.y + 0.01f, glm::two_pi<float>());
