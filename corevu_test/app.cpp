@@ -1,6 +1,7 @@
 #include "app.hpp"
 #include <corevu/include/ext/keyboard_movement_controller.hpp>
 #include <corevu/include/systems/render_system.hpp>
+#include <corevu/include/systems/point_light_system.hpp>
 #include <corevu/include/corevu_camera.hpp>
 #include <corevu/include/corevu_buffer.hpp>
 
@@ -26,7 +27,8 @@ const std::chrono::milliseconds FRAME_DURATION(1000 / FPS);
 struct GlobalUbo
 {
   /* NOTE it has the same alignment 16 bytes requirement as PushConstants */
-  glm::mat4 projection_view_matrix{1.f}; // already 16 bytes aligned
+  glm::mat4 projection_matrix{1.f}; // already 16 bytes aligned
+  glm::mat4 view_matrix{1.f}; // already 16 bytes aligned
   glm::vec4 ambient_light_color{1.f, 1.f, 1.f, .02f};
   // glm::vec3 light_direction = glm::normalize(glm::vec3{1.f, -3.f, -1.f});
   glm::vec3 light_position{-1.f};
@@ -89,6 +91,10 @@ void SampleApp::run()
   corevu::RenderSystem render_system{
       m_corevu_device, m_renderer.GetSwapchainRenderpass(),
       global_descriptor_set_layout->getDescriptorSetLayout()};
+  corevu::PointLightSystem point_light_system{
+      m_corevu_device, m_renderer.GetSwapchainRenderpass(),
+      global_descriptor_set_layout->getDescriptorSetLayout()};
+
   corevu::CoreVuCamera camera{};
   // camera.setViewDirection(glm::vec3(0.f), glm::vec3(0.5f, 0.f, 1.f));
   // camera.setViewTarget(glm::vec3(1.f, -2.f, 2.f), glm::vec3(0.f, 0.f, 2.5f));
@@ -141,13 +147,15 @@ void SampleApp::run()
 
       // update
       GlobalUbo ubo{};
-      ubo.projection_view_matrix = camera.getProjection() * camera.getView();
+      ubo.projection_matrix = camera.getProjection();
+      ubo.view_matrix = camera.getView();
       uniform_buffers[frame_index]->writeToBuffer(&ubo);
       uniform_buffers[frame_index]->flush();
 
       // render
       m_renderer.BeginSwapChainRenderPass(command_buffer);
       render_system.renderGameObjects(frame_info);
+      point_light_system.render(frame_info);
       m_renderer.EndSwapChainRenderPass(command_buffer);
       m_renderer.EndFrame();
     }

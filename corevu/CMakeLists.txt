@@ -17,6 +17,7 @@ list(APPEND CORE_SOURCE
     src/corevu_buffer.cpp
     src/corevu_descriptors.cpp
     src/systems/render_system.cpp
+    src/systems/point_light_system.cpp
     src/ext/keyboard_movement_controller.cpp
     )
 list(APPEND CORE_HEADER
@@ -34,6 +35,7 @@ list(APPEND CORE_HEADER
     include/systems/color_system.hpp
     include/systems/gravity_system.hpp
     include/systems/vector_field_system.hpp
+    include/systems/point_light_system.hpp
     include/ext/keyboard_movement_controller.hpp
     )
 

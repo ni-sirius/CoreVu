@@ -16,7 +16,8 @@ push;
 // Vulkan: uniform buffer has min 16KB(mobile divices) limit and max 64KB limit.
 layout(set = 0, binding = 0) uniform GlobalUniformBufferObject // UBO
 {
-  mat4 projectionViewMatrix; // view * projection
+  mat4 projectionMatrix;
+  mat4 viewMatrix;
   vec4 ambientLightColor;    // w as ambient intensity, xyz as color
   // vec3 directionToLight;     // for single direction light
   vec3 lightPosition;

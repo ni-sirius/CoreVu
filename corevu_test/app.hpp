@@ -32,7 +32,7 @@ private:
   void loadGameObjects();
 
 private:
-  corevu::CoreVuWindow m_corevu_window{width, height, "hello world!"};
+  corevu::CoreVuWindow m_corevu_window{width, height, "Hello CoreVu!"};
   corevu::CoreVuDevice m_corevu_device{m_corevu_window};
   SampleRenderer m_renderer{m_corevu_window, m_corevu_device};
 
