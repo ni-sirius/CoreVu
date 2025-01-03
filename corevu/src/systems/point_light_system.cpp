@@ -91,19 +91,28 @@ void PointLightSystem::createPipeline(VkRenderPass render_pass)
 
 void PointLightSystem::update(FrameInfo& frame_info, GlobalUbo& global_ubo)
 {
+  auto rotation = glm::rotate(
+      glm::mat4(1.f), frame_info.frame_time, glm::vec3{-1.f, 0.f, 0.f}); // another rotation x instead y
+
   int light_index = 0;
-  for (const auto& [_, object] : frame_info.game_objects)
+  for (auto& [_, object] : frame_info.game_objects)
   {
     if (!object.point_light)
     {
       continue;
     }
-    if (light_index >= MAX_LIGHTS)
-    {
-      std::cerr << "WARNING::too many point lights, skipping the rest"
-                << std::endl;
-      break;
-    }
+    assert(
+        light_index < MAX_LIGHTS && "PointLightSystem::update too many lights");
+    // if (light_index >= MAX_LIGHTS)
+    // {
+    //   std::cerr << "WARNING::too many point lights, skipping the rest"
+    //             << std::endl;
+    //   break;
+    // }
+
+    // upd position
+    object.transform.translation =
+        glm::vec3{rotation * glm::vec4{object.transform.translation, 1.f}};
 
     global_ubo.point_lights[light_index].position =
         glm::vec4{object.transform.translation, 1.f};
@@ -153,13 +162,13 @@ void PointLightSystem::render(FrameInfo& frame_info)
         VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0,
         sizeof(PointLightPushConstants), &push_constants);
 
-    //TODO for other shapes
-    // if (object.model)
-    // {
-    //   object.model->Bind(frame_info.command_buffer);
-    //   object.model->Draw(frame_info.command_buffer);
-    // }
-    // else
+    // TODO for other shapes
+    //  if (object.model)
+    //  {
+    //    object.model->Bind(frame_info.command_buffer);
+    //    object.model->Draw(frame_info.command_buffer);
+    //  }
+    //  else
     {
       // draw a billboard
       vkCmdDraw(frame_info.command_buffer, 6, 1, 0, 0);
