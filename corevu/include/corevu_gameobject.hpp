@@ -107,6 +107,13 @@ struct TransformComponent
   }
 };
 
+struct PointLightComponent
+{
+  glm::vec3 color{1.f};
+  float intensity{1.f};
+  //float range{10.f}; // temporary not used
+};
+
 // basic physics
 struct RigidBody2dComponent
 {
@@ -125,6 +132,18 @@ public:
     static CoreVuUid current_id = 0;
     return CoreVuGameObject{current_id++};
   }
+  static CoreVuGameObject CreateAsPointLight(
+      float intensity = 10.f, float range = 0.1f,
+      glm::vec3 color = glm::vec3{1.f})
+  {
+    auto obj = Create();
+    obj.point_light = std::make_unique<PointLightComponent>();
+    obj.point_light->intensity = intensity;
+    //obj.point_light->range = range; // temporary not used instead stored in scale
+    obj.transform.scale.x = range;
+    obj.color = color;
+    return obj;
+  }
 
   CoreVuGameObject(const CoreVuGameObject&) = delete;
   CoreVuGameObject& operator=(const CoreVuGameObject&) = delete;
@@ -137,10 +156,13 @@ public:
   }
 
   // temporary open
-  std::shared_ptr<CoreVuModel> model;
   glm::vec3 color;
   TransformComponent transform{};
-  RigidBody2dComponent rigid_body;
+
+  // optional components
+  std::shared_ptr<CoreVuModel> model{nullptr};
+  std::unique_ptr<PointLightComponent> point_light{nullptr};
+  // RigidBody2dComponent rigid_body; // temp for gravity system
 
 private:
   CoreVuGameObject(const CoreVuUid& uid) : m_uid{uid}

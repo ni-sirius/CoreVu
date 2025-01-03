@@ -5,6 +5,8 @@
 #include <corevu/include/corevu_camera.hpp>
 #include <corevu/include/corevu_buffer.hpp>
 
+#include <corevu/include/corevu_frame_info.hpp> // to re-think, because the uniform description shouldn't be part of the engine
+
 // libs
 #include <Tracy.hpp>
 
@@ -23,17 +25,6 @@ using namespace corevutest;
 
 const int FPS = 60;
 const std::chrono::milliseconds FRAME_DURATION(1000 / FPS);
-
-struct GlobalUbo
-{
-  /* NOTE it has the same alignment 16 bytes requirement as PushConstants */
-  glm::mat4 projection_matrix{1.f}; // already 16 bytes aligned
-  glm::mat4 view_matrix{1.f}; // already 16 bytes aligned
-  glm::vec4 ambient_light_color{1.f, 1.f, 1.f, .02f};
-  // glm::vec3 light_direction = glm::normalize(glm::vec3{1.f, -3.f, -1.f});
-  glm::vec3 light_position{-1.f};
-  alignas(16) glm::vec4 light_color{1.f, 1.f, 1.f, 1.f};
-};
 
 SampleApp::SampleApp()
 {
@@ -63,7 +54,7 @@ void SampleApp::run()
   for (auto& uniform_buffer : uniform_buffers)
   {
     uniform_buffer = std::make_unique<corevu::CoreVuBuffer>(
-        m_corevu_device, sizeof(GlobalUbo), 1,
+        m_corevu_device, sizeof(corevu::GlobalUbo), 1,
         VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT 
         /* | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT could be used but we will go for using flush()*/);
     uniform_buffer->map();
@@ -146,9 +137,11 @@ void SampleApp::run()
           m_game_objects};
 
       // update
-      GlobalUbo ubo{};
+      corevu::GlobalUbo ubo{};
       ubo.projection_matrix = camera.getProjection();
       ubo.view_matrix = camera.getView();
+      point_light_system.update(
+          frame_info, ubo); // before writing to ubo buffers below
       uniform_buffers[frame_index]->writeToBuffer(&ubo);
       uniform_buffers[frame_index]->flush();
 
@@ -297,6 +290,36 @@ void SampleApp::loadGameObjects()
 
     const auto obj_id = object.GetUid();
     m_game_objects.emplace(obj_id, std::move(object));
+  }
+
+  // Point light object 1
+  {
+    auto object = corevu::CoreVuGameObject::CreateAsPointLight(0.2f);
+    object.transform.translation = {0.0f, -1.0f, 0.0f};
+
+    const auto obj_id = object.GetUid();
+    m_game_objects.emplace(obj_id, std::move(object));
+  }
+
+  // Multi-point light generation
+  {
+    std::vector<glm::vec3> light_colors{
+        {1.f, .1f, .1f}, {.1f, .1f, 1.f}, {.1f, 1.f, .1f},
+        {1.f, 1.f, .1f}, {.1f, 1.f, 1.f}, {1.f, 1.f, 1.f} //
+    };
+    for (size_t i = 0; i < light_colors.size(); i++)
+    {
+      auto object = corevu::CoreVuGameObject::CreateAsPointLight(
+          0.2f, (i + 1) * 0.1f, light_colors[i]);
+      auto rotation = glm::rotate(
+          glm::mat4(1.f), (i * glm::two_pi<float>()) / light_colors.size(),
+          glm::vec3{0.f, -1.f, 0.f});
+      object.transform.translation =
+          glm::vec3{rotation * glm::vec4{-1.f, -1.f, -1.f, 1.f}};
+
+      const auto obj_id = object.GetUid();
+      m_game_objects.emplace(obj_id, std::move(object));
+    }
   }
 
   // base solution

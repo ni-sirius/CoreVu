@@ -27,14 +27,21 @@ layout(push_constant) uniform Push // Vulkan: limited to 128 bytes / two mat4
 push;
 
 // Vulkan: uniform buffer has min 16KB(mobile divices) limit and max 64KB limit.
+struct PointLight
+{
+  vec4 position; // ignore w
+  vec4 color;    // w as light intensity
+};
 layout(set = 0, binding = 0) uniform GlobalUniformBufferObject // UBO
 {
   mat4 projectionMatrix;
   mat4 viewMatrix;
-  vec4 ambientLightColor;    // w as ambient intensity, xyz as color
+  vec4 ambientLightColor; // w as ambient intensity, xyz as color
   // vec3 directionToLight;     // for single direction light
-  vec3 lightPosition;
-  vec4 lightColor; // w as light intensity, xyz as color
+  PointLight pointLights[10]; // instead of hardcoding light amount we can use
+                              // Vulkan's Specialization Constants to pass
+                              // values at time of pipeline creation
+  int pointLightCount;
 }
 ubo;
 

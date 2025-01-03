@@ -14,40 +14,46 @@ layout(push_constant) uniform Push // Vulkan: limited to 128 bytes / two mat4
 push;
 
 // Vulkan: uniform buffer has min 16KB(mobile divices) limit and max 64KB limit.
+struct PointLight
+{
+  vec4 position; // ignore w
+  vec4 color;    // w as light intensity
+};
 layout(set = 0, binding = 0) uniform GlobalUniformBufferObject // UBO
 {
   mat4 projectionMatrix;
   mat4 viewMatrix;
-  vec4 ambientLightColor;    // w as ambient intensity, xyz as color
+  vec4 ambientLightColor; // w as ambient intensity, xyz as color
   // vec3 directionToLight;     // for single direction light
-  vec3 lightPosition;
-  vec4 lightColor; // w as light intensity, xyz as color
+  PointLight pointLights[10]; // instead of hardcoding light amount we can use
+                              // Vulkan's Specialization Constants to pass
+                              // values at time of pipeline creation
+  int pointLightCount;
 }
 ubo;
 
 void main()
 {
-  vec3 directionToLight = ubo.lightPosition - fragPosWorld;
-  float attenuation =
-      1.0 / dot(directionToLight,
-                directionToLight); // dot with itself is the distance squared
+  vec3 diffuseLight /* here it's actually ambient light */ =
+      ubo.ambientLightColor.xyz * ubo.ambientLightColor.w;
+  vec3 surfaceNormal =
+      normalize(fragNormalWorld); /* necessary to normalize, because linear
+                      interpolation won't be normal inself */
 
-  vec3 lightColor = ubo.lightColor.xyz * ubo.lightColor.w * attenuation;
-  vec3 ambientLightColor = ubo.ambientLightColor.xyz * ubo.ambientLightColor.w;
-  vec3 diffuseLight =
-      lightColor *
-      max(dot(normalize(
-                  fragNormalWorld) /* necessary to normalize, because linear
-                                      interpolation won't be normal inself */
-              ,
-              normalize(directionToLight)),
-          0.0);
+  for (int i = 0; i < ubo.pointLightCount; i++)
+  {
+    PointLight pointLight = ubo.pointLights[i];
+    vec3 directionToLight = pointLight.position.xyz - fragPosWorld;
+    float attenuation =
+        1.0 / dot(directionToLight,
+                  directionToLight); // dot with itself is the distance squared
+    float cosAngleIncidence =
+        max(dot(surfaceNormal, normalize(directionToLight)), 0.0);
+    vec3 intensity /*aka lightColor */ =
+        pointLight.color.xyz * pointLight.color.w * attenuation;
 
-  // temporary comented out for direction lights
-  // float intensity = ambientValue + max(dot(normalize(fragNormalWorld),
-  // ubo.directionToLight),
-  //                                     0.0); // temporary light intensity
-  // fragColor = intensity * color;
+    diffuseLight += intensity * cosAngleIncidence;
+  }
 
-  outColor = vec4(fragColor * (ambientLightColor + diffuseLight), 1.0);
+  outColor = vec4(fragColor * diffuseLight, 1.0);
 }
