@@ -65,6 +65,8 @@ void PointLightSystem::createPipeline(VkRenderPass render_pass)
 
   PipelineConfigInfo pipeline_config{};
   CoreVuPipeline::DefaultPipelineConfigInfo(pipeline_config);
+  pipeline_config.binding_descriptions.clear(); // reset because vertex attr are not used in point light shader
+  pipeline_config.attribute_descriptions.clear(); // reset because vertex attr are not used in point light shader
   pipeline_config.renderPass = render_pass;
   pipeline_config.pipelineLayout = m_pipeline_layout;
   m_corevu_pipeline = std::make_unique<CoreVuPipeline>(

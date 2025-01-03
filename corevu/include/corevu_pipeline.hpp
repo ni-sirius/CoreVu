@@ -7,23 +7,21 @@
 
 namespace corevu
 {
-struct PipelineConfigInfo {
+struct PipelineConfigInfo
+{
   PipelineConfigInfo(const PipelineConfigInfo&) = delete;
   PipelineConfigInfo& operator=(const PipelineConfigInfo&) = delete;
   // Explicit default constructor
-  PipelineConfigInfo() 
-    : viewportInfo{}, 
-      inputAssemblyInfo{}, 
-      rasterizationInfo{}, 
-      multisampleInfo{}, 
-      colorBlendAttachment{}, 
-      colorBlendInfo{}, 
-      depthStencilInfo{}, 
-      dynamicStateEnables{}, 
-      dynamicStateInfo{},
-      pipelineLayout(nullptr),
-      renderPass(nullptr),
-      subpass(0) {}
+  PipelineConfigInfo()
+    : viewportInfo{}, inputAssemblyInfo{}, rasterizationInfo{},
+      multisampleInfo{}, colorBlendAttachment{}, colorBlendInfo{},
+      depthStencilInfo{}, dynamicStateEnables{}, dynamicStateInfo{},
+      pipelineLayout(nullptr), renderPass(nullptr), subpass(0)
+  {
+  }
+
+  std::vector<VkVertexInputBindingDescription> binding_descriptions{};
+  std::vector<VkVertexInputAttributeDescription> attribute_descriptions{};
 
   VkPipelineViewportStateCreateInfo viewportInfo;
   VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;

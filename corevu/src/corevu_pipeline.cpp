@@ -29,7 +29,8 @@ CoreVuPipeline::~CoreVuPipeline()
 
 void CoreVuPipeline::Bind(VkCommandBuffer command_buffer)
 {
-  vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphics_pipeline);
+  vkCmdBindPipeline(
+      command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphics_pipeline);
 }
 
 void CoreVuPipeline::DefaultPipelineConfigInfo(PipelineConfigInfo& config_info)
@@ -37,9 +38,15 @@ void CoreVuPipeline::DefaultPipelineConfigInfo(PipelineConfigInfo& config_info)
   config_info.inputAssemblyInfo.sType =
       VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
   config_info.inputAssemblyInfo.topology =
-      VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST; //defines a way vertices are interpreted
+      VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST; // defines a way vertices are
+                                           // interpreted
   config_info.inputAssemblyInfo.primitiveRestartEnable =
       VK_FALSE; // if a brake in triagle fan is needed
+
+  config_info.binding_descriptions =
+      CoreVuModel::Vertex::GetBindingDescriptions();
+  config_info.attribute_descriptions =
+      CoreVuModel::Vertex::GetAttributeDescriptions();
 
   config_info.viewportInfo.sType =
       VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -108,9 +115,12 @@ void CoreVuPipeline::DefaultPipelineConfigInfo(PipelineConfigInfo& config_info)
   config_info.depthStencilInfo.front = {}; // Optional
   config_info.depthStencilInfo.back = {};  // Optional
 
-  config_info.dynamicStateEnables = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
-  config_info.dynamicStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-  config_info.dynamicStateInfo.pDynamicStates = config_info.dynamicStateEnables.data();
+  config_info.dynamicStateEnables = {
+      VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+  config_info.dynamicStateInfo.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+  config_info.dynamicStateInfo.pDynamicStates =
+      config_info.dynamicStateEnables.data();
   config_info.dynamicStateInfo.dynamicStateCount =
       static_cast<uint32_t>(config_info.dynamicStateEnables.size());
   config_info.dynamicStateInfo.flags = 0;
@@ -177,16 +187,24 @@ void CoreVuPipeline::createGraphicsPipeline(
   shader_stages[1].pNext = nullptr;
   shader_stages[1].pSpecializationInfo = nullptr;
 
-  auto binding_descriptions = CoreVuModel::Vertex::GetBindingDescriptions();
-  auto attribute_descriptions = CoreVuModel::Vertex::GetAttributeDescriptions();
+  auto& binding_descriptions =
+      config_info
+          .binding_descriptions; // instead of
+                                 // CoreVuModel::Vertex::GetBindingDescriptions();
+  auto& attribute_descriptions =
+      config_info
+          .attribute_descriptions; // instead of
+                                   // CoreVuModel::Vertex::GetAttributeDescriptions();
   VkPipelineVertexInputStateCreateInfo vertex_input_info{};
   vertex_input_info.sType =
       VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-  vertex_input_info.vertexAttributeDescriptionCount = static_cast<uint32_t>(attribute_descriptions.size());
-  vertex_input_info.vertexBindingDescriptionCount = static_cast<uint32_t>(binding_descriptions.size());
-  vertex_input_info.pVertexAttributeDescriptions = attribute_descriptions.data();
+  vertex_input_info.vertexAttributeDescriptionCount =
+      static_cast<uint32_t>(attribute_descriptions.size());
+  vertex_input_info.vertexBindingDescriptionCount =
+      static_cast<uint32_t>(binding_descriptions.size());
+  vertex_input_info.pVertexAttributeDescriptions =
+      attribute_descriptions.data();
   vertex_input_info.pVertexBindingDescriptions = binding_descriptions.data();
-
 
   VkGraphicsPipelineCreateInfo pipeline_info{};
   pipeline_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
