@@ -62,6 +62,20 @@ void CoreVuCamera::setViewDirection(
   m_view_matrix[3][0] = -glm::dot(u, position);
   m_view_matrix[3][1] = -glm::dot(v, position);
   m_view_matrix[3][2] = -glm::dot(w, position);
+
+  m_inverse_view_matrix = glm::mat4{1.f};
+  m_inverse_view_matrix[0][0] = u.x;
+  m_inverse_view_matrix[0][1] = u.y;
+  m_inverse_view_matrix[0][2] = u.z;
+  m_inverse_view_matrix[1][0] = v.x;
+  m_inverse_view_matrix[1][1] = v.y;
+  m_inverse_view_matrix[1][2] = v.z;
+  m_inverse_view_matrix[2][0] = w.x;
+  m_inverse_view_matrix[2][1] = w.y;
+  m_inverse_view_matrix[2][2] = w.z;
+  m_inverse_view_matrix[3][0] = position.x;
+  m_inverse_view_matrix[3][1] = position.y;
+  m_inverse_view_matrix[3][2] = position.z;
 }
 void CoreVuCamera::setViewTarget(
     const glm::vec3& position, const glm::vec3& target, const glm::vec3& up)
@@ -100,5 +114,19 @@ void CoreVuCamera::setViewYXZ(
   m_view_matrix[3][0] = -glm::dot(u, position);
   m_view_matrix[3][1] = -glm::dot(v, position);
   m_view_matrix[3][2] = -glm::dot(w, position);
+
+  m_inverse_view_matrix = glm::mat4{1.f};
+  m_inverse_view_matrix[0][0] = u.x;
+  m_inverse_view_matrix[0][1] = u.y;
+  m_inverse_view_matrix[0][2] = u.z;
+  m_inverse_view_matrix[1][0] = v.x;
+  m_inverse_view_matrix[1][1] = v.y;
+  m_inverse_view_matrix[1][2] = v.z;
+  m_inverse_view_matrix[2][0] = w.x;
+  m_inverse_view_matrix[2][1] = w.y;
+  m_inverse_view_matrix[2][2] = w.z;
+  m_inverse_view_matrix[3][0] = position.x;
+  m_inverse_view_matrix[3][1] = position.y;
+  m_inverse_view_matrix[3][2] = position.z;
 }
 } // namespace corevu

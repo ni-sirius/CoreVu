@@ -140,6 +140,7 @@ void SampleApp::run()
       corevu::GlobalUbo ubo{};
       ubo.projection_matrix = camera.getProjection();
       ubo.view_matrix = camera.getView();
+      ubo.inverse_view_matrix = camera.getInverseView();
       point_light_system.update(
           frame_info, ubo); // before writing to ubo buffers below
       uniform_buffers[frame_index]->writeToBuffer(&ubo);

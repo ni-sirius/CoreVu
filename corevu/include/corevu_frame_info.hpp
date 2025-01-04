@@ -22,6 +22,7 @@ struct GlobalUbo
   /* NOTE it has the same alignment 16 bytes requirement as PushConstants */
   glm::mat4 projection_matrix{1.f}; // already 16 bytes aligned
   glm::mat4 view_matrix{1.f};       // already 16 bytes aligned
+  glm::mat4 inverse_view_matrix{1.f}; // used for extracting camera pos from last column
   glm::vec4 ambient_light_color{1.f, 1.f, 1.f, .02f};
   // glm::vec3 light_direction = glm::normalize(glm::vec3{1.f, -3.f, -1.f});
   PointLight point_lights[MAX_LIGHTS];

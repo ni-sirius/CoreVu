@@ -49,9 +49,14 @@ public:
   {
     return m_view_matrix;
   }
+  const glm::mat4& getInverseView() const
+  {
+    return m_inverse_view_matrix;
+  }
 
 private:
   glm::mat4 m_projection_matrix{1.f};
   glm::mat4 m_view_matrix{1.f};
+  glm::mat4 m_inverse_view_matrix{1.f};
 };
 } // namespace corevu

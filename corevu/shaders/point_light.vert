@@ -23,6 +23,7 @@ layout(set = 0, binding = 0) uniform GlobalUniformBufferObject // UBO
 {
   mat4 projectionMatrix;
   mat4 viewMatrix;
+  mat4 invViewMatrix;
   vec4 ambientLightColor; // w as ambient intensity, xyz as color
   // vec3 directionToLight;     // for single direction light
   PointLight pointLights[10]; // instead of hardcoding light amount we can use
