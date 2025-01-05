@@ -30,6 +30,8 @@ layout(set = 0, binding = 0) uniform GlobalUniformBufferObject // UBO
 }
 ubo;
 
+const float PI = 3.14159265359;
+
 void main()
 {
   // shaping to be a cicrle
@@ -37,5 +39,8 @@ void main()
   if (distance >= 1.0)
     discard;
 
-  outColor = vec4(push.color.xyz, 1.0);
+  float cosTerm = (cos(distance * PI) + 1.0) *
+                0.5; // convinent to use cos here. distance -> 1 at edge,
+                     // cos(distance * PI) -> -1, <cos res> +1 and * 0.5 -> 0.
+  outColor = vec4(push.color.xyz + cosTerm, cosTerm);
 }

@@ -50,6 +50,7 @@ public:
   void Bind(VkCommandBuffer command_buffer);
 
   static void DefaultPipelineConfigInfo(PipelineConfigInfo& config_info);
+  static void EnableAlphaBlending(PipelineConfigInfo& config_info);
 
 private:
   static std::vector<char> readFile(const std::string& filepath);

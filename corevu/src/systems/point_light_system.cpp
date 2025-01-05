@@ -8,6 +8,8 @@
 
 // std
 #include <array>
+#include <map>
+
 using namespace corevu;
 
 /*NOTE:
@@ -77,6 +79,7 @@ void PointLightSystem::createPipeline(VkRenderPass render_pass)
 
   PipelineConfigInfo pipeline_config{};
   CoreVuPipeline::DefaultPipelineConfigInfo(pipeline_config);
+  CoreVuPipeline::EnableAlphaBlending(pipeline_config);
   pipeline_config.binding_descriptions
       .clear(); // reset because vertex attr are not used in point light shader
   pipeline_config.attribute_descriptions
@@ -92,7 +95,7 @@ void PointLightSystem::createPipeline(VkRenderPass render_pass)
 void PointLightSystem::update(FrameInfo& frame_info, GlobalUbo& global_ubo)
 {
   auto rotation = glm::rotate(
-      glm::mat4(1.f), frame_info.frame_time, glm::vec3{-1.f, 0.f, 0.f}); // another rotation x instead y
+      glm::mat4(1.f), frame_info.frame_time, glm::vec3{0.f, -1.f, 0.f}); // another rotation x instead y
 
   int light_index = 0;
   for (auto& [_, object] : frame_info.game_objects)
@@ -111,8 +114,8 @@ void PointLightSystem::update(FrameInfo& frame_info, GlobalUbo& global_ubo)
     // }
 
     // upd position
-    object.transform.translation =
-        glm::vec3{rotation * glm::vec4{object.transform.translation, 1.f}};
+    // object.transform.translation =
+    //     glm::vec3{rotation * glm::vec4{object.transform.translation, 1.f}};
 
     global_ubo.point_lights[light_index].position =
         glm::vec4{object.transform.translation, 1.f};
@@ -128,6 +131,22 @@ void PointLightSystem::update(FrameInfo& frame_info, GlobalUbo& global_ubo)
 
 void PointLightSystem::render(FrameInfo& frame_info)
 {
+  // sort lights for transparancy handling
+  std::map<float, CoreVuGameObject::CoreVuUid> sorted;
+  for (const auto& [uid, object] : frame_info.game_objects)
+  {
+    if (!object.point_light)
+    {
+      continue;
+    }
+
+    const auto& position = object.transform.translation;
+    const auto& camera_position = frame_info.camera.getPosition();
+    const auto offset_vec = position - camera_position;
+    const auto distSquared = glm::dot(offset_vec, offset_vec);
+    sorted[distSquared] = uid;
+  }
+
   /* NOTE: for different shaders we would require to have different pipeleines,
    * WARN: not to rebind them often because it's expensive. */
   m_corevu_pipeline->Bind(frame_info.command_buffer);
@@ -144,12 +163,10 @@ void PointLightSystem::render(FrameInfo& frame_info)
       nullptr); // Bind the global descriptor set once to be used for all
                 // objects.
 
-  for (const auto& [_, object] : frame_info.game_objects)
+  // iterate through sorted lights in reverse order
+  for (auto it = sorted.rbegin(); it != sorted.rend(); it++)
   {
-    if (!object.point_light)
-    {
-      continue;
-    }
+    const auto& object = frame_info.game_objects.at(it->second);
 
     PointLightPushConstants push_constants{};
     push_constants.color =

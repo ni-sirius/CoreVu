@@ -126,6 +126,29 @@ void CoreVuPipeline::DefaultPipelineConfigInfo(PipelineConfigInfo& config_info)
   config_info.dynamicStateInfo.flags = 0;
 }
 
+void CoreVuPipeline::EnableAlphaBlending(PipelineConfigInfo& config_info)
+{
+  /* NOTE
+  src in the current output from current fragment shader; dst is the color in
+  the color attachment. equasion color.rgb = (src.alpha * src.rgb) + ((1 -
+  src.alpha) * dst.rgb)
+   */
+  config_info.colorBlendAttachment.blendEnable = VK_TRUE;
+
+  config_info.colorBlendAttachment.colorWriteMask =
+      VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+      VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+
+  config_info.colorBlendAttachment.srcColorBlendFactor =
+      VK_BLEND_FACTOR_SRC_ALPHA;
+  config_info.colorBlendAttachment.dstColorBlendFactor =
+      VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+  config_info.colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+  config_info.colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+  config_info.colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+  config_info.colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+}
+
 std::vector<char> CoreVuPipeline::readFile(const std::string& filepath)
 {
   std::ifstream file{

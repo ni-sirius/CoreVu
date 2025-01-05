@@ -148,8 +148,11 @@ void SampleApp::run()
 
       // render
       m_renderer.BeginSwapChainRenderPass(command_buffer);
+
+      // oredered by transparency
       render_system.renderGameObjects(frame_info);
       point_light_system.render(frame_info);
+
       m_renderer.EndSwapChainRenderPass(command_buffer);
       m_renderer.EndFrame();
     }

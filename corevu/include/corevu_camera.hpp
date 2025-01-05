@@ -53,6 +53,10 @@ public:
   {
     return m_inverse_view_matrix;
   }
+  const glm::vec3 getPosition() const
+  {
+    return glm::vec3{m_inverse_view_matrix[3]};
+  }
 
 private:
   glm::mat4 m_projection_matrix{1.f};
