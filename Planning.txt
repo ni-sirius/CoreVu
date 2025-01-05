@@ -1,0 +1,7 @@
+Tutorial stage.
+	* Implement textures.
+		done: device, stb, quad, texture.
+	* Implement ubo buffers array + abstraction
+	* Implement/add basic ECS
+Book stage.
+	* TODO
