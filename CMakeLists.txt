@@ -12,6 +12,7 @@ set(GLFW_PATH "C:/workspace/CoreVu/3rdparty/glfw")
 set(GLM_PATH "C:/workspace/CoreVu/3rdparty/glm-master")
 set(TINYOBJLOADER_PATH "C:/workspace/CoreVu/3rdparty/tinyobjloader")
 set(TRACY_PATH "C:/workspace/CoreVu/3rdparty/tracy-0.10")
+set(STB_PATH "C:/workspace/CoreVu/3rdparty/stb")
 add_compile_definitions(TRACY_ENABLE)
 
 add_subdirectory(corevu)
@@ -55,6 +56,7 @@ target_include_directories(CoreVuTest PRIVATE
     ${GLM_PATH}
     ${TRACY_PATH}/public/tracy
     ${TINYOBJLOADER_PATH}
+    ${STB_PATH}
 )
 
 target_link_libraries(CoreVuTest PRIVATE

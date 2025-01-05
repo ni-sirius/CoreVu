@@ -4,6 +4,7 @@ set(GLFW_PATH "C:/workspace/CoreVu/3rdparty/glfw")
 set(GLM_PATH "C:/workspace/CoreVu/3rdparty/glm-master")
 set(TRACY_PATH "C:/workspace/CoreVu/3rdparty/tracy-0.10")
 set(TINYOBJLOADER_PATH "C:/workspace/CoreVu/3rdparty/tinyobjloader")
+set(STB_PATH "C:/workspace/CoreVu/3rdparty/stb")
 #add_compile_definitions(TRACY_ENABLE)
 
 list(APPEND CORE_SOURCE
@@ -81,6 +82,7 @@ target_include_directories(CoreVu PUBLIC
     ${GLM_PATH}
     ${TRACY_PATH}/public/tracy
     ${TINYOBJLOADER_PATH}
+    ${STB_PATH}
 )
 
 find_package(Vulkan REQUIRED)
