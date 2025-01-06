@@ -29,6 +29,8 @@ const std::chrono::milliseconds FRAME_DURATION(1000 / FPS);
 
 SampleApp::SampleApp()
 {
+  // Allocating all descriptor pools
+  // global pool - one DPool for all frames, one DSet per frame
   m_global_descriptor_pool =
       corevu::CoreVuDescriptorPool::Builder(m_corevu_device)
           .setMaxSets(corevu::CoreVuSwapChain::MAX_FRAMES_IN_FLIGHT)
@@ -40,11 +42,11 @@ SampleApp::SampleApp()
                     // doesn't mean that there will be 1 descriptor in each, you
                     // need to specify overall count of descriptors in the pool.
 
-  // build frame descriptor pools
+  // frame pool - one DPool per frame, one DSet per object(TODO per material, or do caching by DSet contents.)
   m_frame_pools.resize(corevu::CoreVuSwapChain::MAX_FRAMES_IN_FLIGHT);
   auto frame_pool_builder =
       corevu::CoreVuDescriptorPool::Builder::Builder(m_corevu_device)
-          .setMaxSets(1000)
+          .setMaxSets(1000) // to fit all possible objects TODO
           .addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000)
           .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000)
           .setPoolFlags(VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT);
