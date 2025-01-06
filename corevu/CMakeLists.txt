@@ -17,8 +17,10 @@ list(APPEND CORE_SOURCE
     src/corevu_camera.cpp
     src/corevu_buffer.cpp
     src/corevu_descriptors.cpp
+    src/corevu_texture.cpp
     src/systems/render_system.cpp
     src/systems/point_light_system.cpp
+    src/systems/texture_render_system.cpp
     src/ext/keyboard_movement_controller.cpp
     )
 list(APPEND CORE_HEADER
@@ -32,11 +34,13 @@ list(APPEND CORE_HEADER
     include/corevu_camera.hpp
     include/corevu_buffer.hpp
     include/corevu_descriptors.hpp
+    include/corevu_texture.hpp
     include/systems/render_system.hpp
     include/systems/color_system.hpp
     include/systems/gravity_system.hpp
     include/systems/vector_field_system.hpp
     include/systems/point_light_system.hpp
+    include/systems/texture_render_system.hpp
     include/ext/keyboard_movement_controller.hpp
     )
 

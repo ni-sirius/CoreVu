@@ -111,7 +111,7 @@ void RenderSystem::renderGameObjects(FrameInfo& frame_info)
   {
     auto& obj = obj_elem.second;
 
-    if (!obj.model)
+    if (!obj.model || obj.diffuse_map)
     {
       continue;
     }

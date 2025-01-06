@@ -3,3 +3,6 @@ C:\VulkanSDK\1.3.261.1\Bin\glslc.exe shaders\simple_shader.vert -o shaders\simpl
 
 C:\VulkanSDK\1.3.261.1\Bin\glslc.exe shaders\point_light.vert -o shaders\point_light.vert.spv
 C:\VulkanSDK\1.3.261.1\Bin\glslc.exe shaders\point_light.frag -o shaders\point_light.frag.spv
+
+C:\VulkanSDK\1.3.261.1\Bin\glslc.exe shaders\texture_shader.vert -o shaders\texture_shader.vert.spv
+C:\VulkanSDK\1.3.261.1\Bin\glslc.exe shaders\texture_shader.frag -o shaders\texture_shader.frag.spv

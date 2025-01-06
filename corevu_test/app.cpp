@@ -2,6 +2,7 @@
 #include <corevu/include/ext/keyboard_movement_controller.hpp>
 #include <corevu/include/systems/render_system.hpp>
 #include <corevu/include/systems/point_light_system.hpp>
+#include <corevu/include/systems/texture_render_system.hpp>
 #include <corevu/include/corevu_camera.hpp>
 #include <corevu/include/corevu_buffer.hpp>
 
@@ -38,6 +39,19 @@ SampleApp::SampleApp()
                     // set is MAX_FRAMES_IN_FLIGHT? Because having 2 sets
                     // doesn't mean that there will be 1 descriptor in each, you
                     // need to specify overall count of descriptors in the pool.
+
+  // build frame descriptor pools
+  m_frame_pools.resize(corevu::CoreVuSwapChain::MAX_FRAMES_IN_FLIGHT);
+  auto frame_pool_builder =
+      corevu::CoreVuDescriptorPool::Builder::Builder(m_corevu_device)
+          .setMaxSets(1000)
+          .addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000)
+          .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000)
+          .setPoolFlags(VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT);
+  for (int i = 0; i < m_frame_pools.size(); i++)
+  {
+    m_frame_pools[i] = frame_pool_builder.build();
+  }
 
   loadGameObjects();
 }
@@ -85,6 +99,9 @@ void SampleApp::run()
   corevu::PointLightSystem point_light_system{
       m_corevu_device, m_renderer.GetSwapchainRenderpass(),
       global_descriptor_set_layout->getDescriptorSetLayout()};
+  corevu::TextureRenderSystem texture_render_system{
+      m_corevu_device, m_renderer.GetSwapchainRenderpass(),
+      global_descriptor_set_layout->getDescriptorSetLayout()};
 
   corevu::CoreVuCamera camera{};
   // camera.setViewDirection(glm::vec3(0.f), glm::vec3(0.5f, 0.f, 1.f));
@@ -128,13 +145,15 @@ void SampleApp::run()
     if (auto command_buffer = m_renderer.BeginFrame())
     {
       const int frame_index = m_renderer.GetFrameIndex();
+      m_frame_pools[frame_index]->resetPool();
       corevu::FrameInfo frame_info{
-          frame_index,
-          dt_sec,
-          command_buffer,
-          camera,
-          global_descriptor_sets[frame_index],
-          m_game_objects};
+          .frame_index = frame_index,
+          .frame_time = dt_sec,
+          .command_buffer = command_buffer,
+          .camera = camera,
+          .global_descriptor_set = global_descriptor_sets[frame_index],
+          .frame_descriptor_pool = *m_frame_pools[frame_index],
+          .game_objects = m_game_objects};
 
       // update
       corevu::GlobalUbo ubo{};
@@ -150,6 +169,7 @@ void SampleApp::run()
       m_renderer.BeginSwapChainRenderPass(command_buffer);
 
       // oredered by transparency
+      texture_render_system.renderGameObjects(frame_info);
       render_system.renderGameObjects(frame_info);
       point_light_system.render(frame_info);
 
@@ -287,8 +307,11 @@ void SampleApp::loadGameObjects()
   {
     auto model = corevu::CoreVuModel::CreateModelFromPath(
         m_corevu_device, "C:\\workspace\\CoreVu\\assets\\models\\quad.obj");
+    auto texture = corevu::CoreVuTexture::createTextureFromPath(
+        m_corevu_device, "C:\\workspace\\CoreVu\\assets\\textures\\missing.png");
     auto object = corevu::CoreVuGameObject::Create();
     object.model = model;
+    object.diffuse_map = texture;
     object.transform.translation = {0.0f, .5f, 0};
     object.transform.scale = {3.f, 1.f, 3.f};
 

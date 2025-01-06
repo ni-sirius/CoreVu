@@ -12,8 +12,8 @@ namespace corevu
 struct SwapChainSupportDetails
 {
   VkSurfaceCapabilitiesKHR capabilities;
-  std::vector< VkSurfaceFormatKHR > formats;
-  std::vector< VkPresentModeKHR > presentModes;
+  std::vector<VkSurfaceFormatKHR> formats;
+  std::vector<VkPresentModeKHR> presentModes;
 };
 
 struct QueueFamilyIndices
@@ -71,30 +71,37 @@ public:
   {
     return querySwapChainSupport(physicalDevice);
   }
-  uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+  uint32_t findMemoryType(
+      uint32_t typeFilter, VkMemoryPropertyFlags properties);
   QueueFamilyIndices findPhysicalQueueFamilies()
   {
     return findQueueFamilies(physicalDevice);
   }
   VkFormat findSupportedFormat(
-      const std::vector< VkFormat >& candidates, VkImageTiling tiling,
+      const std::vector<VkFormat>& candidates, VkImageTiling tiling,
       VkFormatFeatureFlags features);
 
   // Buffer Helper Functions
   void createBuffer(
-      VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
-      VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+      VkDeviceSize size, VkBufferUsageFlags usage,
+      VkMemoryPropertyFlags properties, VkBuffer& buffer,
+      VkDeviceMemory& bufferMemory);
   VkCommandBuffer beginSingleTimeCommands();
   void endSingleTimeCommands(VkCommandBuffer commandBuffer);
   void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
   void copyBufferToImage(
-      VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount);
+      VkBuffer buffer, VkImage image, uint32_t width, uint32_t height,
+      uint32_t layerCount);
 
   void createImageWithInfo(
-      const VkImageCreateInfo& imageInfo, VkMemoryPropertyFlags properties, VkImage& image,
-      VkDeviceMemory& imageMemory);
+      const VkImageCreateInfo& imageInfo, VkMemoryPropertyFlags properties,
+      VkImage& image, VkDeviceMemory& imageMemory);
 
   VkPhysicalDeviceProperties properties;
+
+  void transitionImageLayout(
+      VkImage image, VkFormat format, VkImageLayout oldLayout,
+      VkImageLayout newLayout, uint32_t mipLevels = 1, uint32_t layerCount = 1);
 
 private:
   void createInstance();
@@ -106,10 +113,11 @@ private:
 
   // helper functions
   bool isDeviceSuitable(VkPhysicalDevice device);
-  std::vector< const char* > getRequiredExtensions();
+  std::vector<const char*> getRequiredExtensions();
   bool checkValidationLayerSupport();
   QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
-  void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+  void populateDebugMessengerCreateInfo(
+      VkDebugUtilsMessengerCreateInfoEXT& createInfo);
   void hasGflwRequiredInstanceExtensions();
   bool checkDeviceExtensionSupport(VkPhysicalDevice device);
   SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
@@ -125,8 +133,10 @@ private:
   VkQueue graphicsQueue_;
   VkQueue presentQueue_;
 
-  const std::vector< const char* > validationLayers = {"VK_LAYER_KHRONOS_validation"};
-  const std::vector< const char* > deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+  const std::vector<const char*> validationLayers = {
+      "VK_LAYER_KHRONOS_validation"};
+  const std::vector<const char*> deviceExtensions = {
+      VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 };
 
 } // namespace corevu

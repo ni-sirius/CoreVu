@@ -37,6 +37,7 @@ private:
   SampleRenderer m_renderer{m_corevu_window, m_corevu_device};
 
   std::unique_ptr<corevu::CoreVuDescriptorPool> m_global_descriptor_pool{};
+  std::vector<std::unique_ptr<corevu::CoreVuDescriptorPool>> m_frame_pools;
 
   // also could draw the model itself std::unique_ptr<corevu::CoreVuModel>
   corevu::CoreVuGameObject::ObjectContainer m_game_objects;

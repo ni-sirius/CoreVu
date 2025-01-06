@@ -114,8 +114,8 @@ void PointLightSystem::update(FrameInfo& frame_info, GlobalUbo& global_ubo)
     // }
 
     // upd position
-    // object.transform.translation =
-    //     glm::vec3{rotation * glm::vec4{object.transform.translation, 1.f}};
+    object.transform.translation =
+        glm::vec3{rotation * glm::vec4{object.transform.translation, 1.f}};
 
     global_ubo.point_lights[light_index].position =
         glm::vec4{object.transform.translation, 1.f};

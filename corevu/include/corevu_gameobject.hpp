@@ -1,6 +1,7 @@
 #pragma once
 
 #include "corevu_model.hpp"
+#include "corevu_texture.hpp"
 
 // libs
 #include <glm/gtc/matrix_transform.hpp>
@@ -161,6 +162,7 @@ public:
 
   // optional components
   std::shared_ptr<CoreVuModel> model{nullptr};
+  std::shared_ptr<CoreVuTexture> diffuse_map{nullptr};
   std::unique_ptr<PointLightComponent> point_light{nullptr};
   // RigidBody2dComponent rigid_body; // temp for gravity system
 
